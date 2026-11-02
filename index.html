@@ -11,8 +11,7 @@
   --bg:#e9eef5; --panel:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#dbe3ee;
   --corridor:#cfd8e3; --corridor2:#c5cfdb; --wall:#334155; --floor:#f8fafc; --floor2:#eef2f7;
   --shadow:0 10px 30px rgba(15,23,42,.10);
-  --dark:0; /* room darkness 0..1 */
-  --glow:.55;
+  --dark:0; --glow:.55;
 }
 body.night{
   --bg:#0b1020; --panel:#121a2e; --ink:#e2e8f0; --muted:#94a3b8; --line:#23304a;
@@ -25,6 +24,7 @@ html,body{margin:0}
 body{font-family:"Tajawal",system-ui,sans-serif;background:var(--bg);color:var(--ink);transition:background .8s,color .8s;min-height:100vh}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
 
 /* ---------- Header ---------- */
 .top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
@@ -40,15 +40,42 @@ button{cursor:pointer}
 .chip.on{background:var(--c);color:#fff;border-color:var(--c)}
 .chip.on .dot{background:#fff}
 .tools{max-width:1400px;margin:auto;padding:0 16px 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.btn{border:1px solid var(--line);background:var(--panel);padding:7px 12px;border-radius:10px;font-weight:700;font-size:14px;display:inline-flex;gap:6px;align-items:center;transition:.15s}
-.btn:hover{border-color:#94a3b8}
+.btn{border:1px solid var(--line);background:var(--panel);padding:7px 12px;border-radius:10px;font-weight:700;font-size:14px;display:inline-flex;gap:6px;align-items:center;justify-content:center;transition:.15s}
+.btn:hover:not(:disabled){border-color:#94a3b8}
 .btn.primary{background:#2563eb;border-color:#2563eb;color:#fff}
+.btn.green{background:#16a34a;border-color:#16a34a;color:#fff}
 .btn.active{background:#0f172a;color:#fff;border-color:#0f172a}
 body.night .btn.active{background:#e2e8f0;color:#0f172a}
 .search{flex:1 1 180px;max-width:280px;border:1px solid var(--line);background:var(--panel);padding:7px 12px;border-radius:10px}
+main{max-width:1400px;margin:auto;padding:10px 16px 30px}
+
+/* ---------- Pipeline board ---------- */
+.board{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:12px;margin-bottom:16px}
+.board-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.board-head h2{margin:0;font-size:16px}
+.board-head .sub{margin-inline-start:auto}
+.cols{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:10px;overflow-x:auto;padding-bottom:4px}
+.col{position:relative;background:var(--floor);border:1px solid var(--line);border-radius:12px;padding:8px;min-height:96px;display:flex;flex-direction:column;gap:6px}
+.col:not(:last-child)::after{content:"◀";position:absolute;left:-5px;top:14px;translate:-50% 0;color:var(--muted);font-size:10px}
+.col-h{display:flex;align-items:center;gap:6px;font-weight:800;font-size:13px}
+.col-h .ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;background:var(--c);font-size:12px}
+.col-h b{margin-inline-start:auto;font-size:12px;color:var(--muted)}
+.pchip{border-radius:9px;background:var(--panel);border:1px solid var(--line);border-inline-start:4px solid var(--pc);padding:5px 7px;font-size:12px;cursor:pointer;text-align:start;display:flex;flex-direction:column;gap:3px}
+.pchip .t{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pchip .m{color:var(--muted);display:flex;gap:4px;align-items:center;font-size:11px}
+.pchip .pb{height:4px;border-radius:4px;background:var(--floor2);overflow:hidden}
+.pchip .pb i{display:block;height:100%;background:var(--pc);transition:width .5s}
+.pchip.incoming{background:repeating-linear-gradient(135deg,var(--panel) 0 8px,color-mix(in srgb,var(--pc) 14%,var(--panel)) 8px 16px);background-size:200% 100%;animation:stripes 1s linear infinite}
+.pchip.moved{animation:slidein .7s cubic-bezier(.2,.8,.2,1)}
+.pchip.incoming.moved{animation:slidein .7s cubic-bezier(.2,.8,.2,1),stripes 1s linear infinite}
+@keyframes stripes{to{background-position:-32px 0}}
+@keyframes slidein{0%{transform:translateX(60px) scale(.9);opacity:0;box-shadow:0 0 0 4px var(--pc)}60%{opacity:1}100%{transform:none;box-shadow:0 0 0 0 transparent}}
+.pub{font-size:30px;font-weight:800;text-align:center;line-height:1}
+.pub-list{font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.pub-list span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty-col{font-size:11px;color:var(--muted);text-align:center;margin:auto}
 
 /* ---------- Floor plan ---------- */
-main{max-width:1400px;margin:auto;padding:6px 16px 30px}
 .floor{
   position:relative;isolation:isolate;display:grid;gap:26px;padding:26px;border-radius:22px;
   background:
@@ -57,36 +84,51 @@ main{max-width:1400px;margin:auto;padding:6px 16px 30px}
   box-shadow:var(--shadow);transition:background .8s;
   grid-template-columns:repeat(4,minmax(0,1fr));
   grid-template-areas:
-    "admin   edit    edit    design"
-    "writing meeting meeting marketing"
-    "tech    lounge  lounge  production"
-    "lobby   lobby   lobby   lobby";
+    "admin   writing  writing production"
+    "tech    meeting  meeting edit"
+    "marketing lounge lounge  design"
+    "lobby   lobby    lobby   lobby";
 }
 @media (max-width:1000px){
   .floor{grid-template-columns:repeat(2,minmax(0,1fr));
-    grid-template-areas:"admin design" "edit edit" "writing marketing" "meeting meeting" "tech production" "lounge lounge" "lobby lobby";}
+    grid-template-areas:"admin writing" "production edit" "design marketing" "meeting meeting" "tech tech" "lounge lounge" "lobby lobby";}
 }
 @media (max-width:600px){
   .floor{gap:20px;padding:14px;grid-template-columns:minmax(0,1fr);
-    grid-template-areas:"admin" "design" "edit" "writing" "marketing" "meeting" "tech" "production" "lounge" "lobby";}
+    grid-template-areas:"admin" "writing" "production" "edit" "design" "marketing" "meeting" "tech" "lounge" "lobby";}
+  .top{position:static}
 }
 .room{
-  position:relative;border:6px solid var(--wall);border-radius:16px;padding:46px 10px 22px;min-height:190px;
+  position:relative;border:6px solid var(--wall);border-radius:16px;padding:46px 10px 46px;min-height:190px;
   background:
     linear-gradient(rgba(2,6,23,var(--room-dark,var(--dark))),rgba(2,6,23,var(--room-dark,var(--dark)))),
     repeating-linear-gradient(45deg,var(--floor) 0 14px,var(--floor2) 14px 28px);
-  transition:background .8s,box-shadow .3s;cursor:default;
+  transition:background .8s,box-shadow .3s;
 }
+.room.special{padding-bottom:22px}
 .room.lit{--room-dark:calc(var(--dark) * .15)}
 .room.sel{box-shadow:0 0 0 4px var(--c)}
+.room.recv{box-shadow:0 0 0 4px var(--rc),0 0 30px var(--rc)}
 .plate{position:absolute;top:8px;inset-inline:10px;display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;cursor:pointer;color:var(--ink);z-index:7}
 .plate .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:var(--c);font-size:14px;box-shadow:0 2px 8px color-mix(in srgb,var(--c) 50%,transparent)}
-.plate .cnt{margin-inline-start:auto;font-size:12px;font-weight:700;color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:1px 8px;border-radius:999px}
+.plate .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plate .step{flex:none;font-size:10px;font-weight:800;color:#fff;background:var(--c);border-radius:999px;padding:0 6px}
+.plate .cnt{flex:none;margin-inline-start:auto;font-size:12px;font-weight:700;color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:1px 8px;border-radius:999px}
 .ceiling{position:absolute;top:-6px;left:50%;translate:-50% 0;width:60px;height:6px;border-radius:0 0 6px 6px;background:#475569;transition:.5s}
 .room.lit .ceiling{background:#fde68a;box-shadow:0 0 30px 10px rgba(253,230,138,calc(.6*var(--glow)))}
 .door{position:absolute;bottom:-10px;left:50%;translate:-50% 0;width:46px;height:14px;background:var(--corridor);border-inline:4px solid #94a3b8}
 .door .pt{position:absolute;left:50%;top:50%}
 .desks{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 8px}
+
+/* inbox tray */
+.tray{position:absolute;z-index:6;bottom:6px;left:calc(50% + 34px);width:58px;height:30px;border-radius:6px;background:#64748b;box-shadow:inset 0 -6px 0 #475569,0 4px 8px rgba(0,0,0,.2);cursor:pointer}
+.tray::before{content:"وارد";position:absolute;bottom:-1px;left:0;right:0;text-align:center;font-size:9px;font-weight:800;color:#e2e8f0}
+.tray .f{position:absolute;left:8px;width:40px;height:9px;border-radius:2px;background:var(--pc);box-shadow:0 1px 0 rgba(0,0,0,.25);transition:.3s}
+.tray .badge{position:absolute;top:-9px;right:-9px;min-width:20px;height:20px;border-radius:10px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 5px;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.tray .badge:empty{display:none}
+.tray .spot{position:absolute;left:50%;top:60%}
+.tray.bump{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.18)}}
 
 /* ---------- Desk ---------- */
 .desk{position:relative;width:134px;height:112px}
@@ -96,25 +138,27 @@ main{max-width:1400px;margin:auto;padding:6px 16px 30px}
 .nameplate{position:absolute;bottom:4px;left:50%;translate:-50% 0;background:#f8fafc;color:#0f172a;font-size:10px;font-weight:800;padding:1px 6px 1px 4px;border-radius:4px;white-space:nowrap;display:flex;align-items:center;gap:4px;max-width:110px;overflow:hidden}
 .nameplate i{width:7px;height:7px;border-radius:50%;background:var(--sc,#94a3b8);flex:none;box-shadow:0 0 6px var(--sc,transparent)}
 .nameplate.empty{opacity:.55}
+.dbar{position:absolute;left:10px;right:10px;bottom:-6px;height:6px;border-radius:3px;background:#3b2a1c;overflow:hidden;opacity:0;transition:opacity .3s}
+.dbar i{display:block;height:100%;width:0;background:var(--pc,#22c55e);transition:width .6s}
+.desk.has-task .dbar{opacity:1}
+.dfolder{position:absolute;left:40px;bottom:22px;width:20px;height:13px;border-radius:2px;background:var(--pc,#fbbf24);box-shadow:inset 0 3px 0 rgba(255,255,255,.35),0 1px 0 rgba(0,0,0,.3);transform:scale(0);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.dfolder::before{content:"";position:absolute;top:-3px;left:2px;width:8px;height:4px;border-radius:2px 2px 0 0;background:var(--pc,#fbbf24)}
+.desk.has-task .dfolder{transform:scale(1)}
 
 /* lamp */
 .lamp{position:absolute;left:4px;bottom:22px;width:30px;height:44px}
 .lamp svg{position:absolute;inset:0;overflow:visible}
 .lamp .bulb{fill:#64748b;transition:fill .3s}
 .lamp .glow{position:absolute;left:18px;top:14px;width:170px;height:170px;translate:-50% -50%;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
-  background:radial-gradient(circle,rgba(255,214,102,calc(.75*var(--glow))) 0,rgba(255,214,102,calc(.25*var(--glow))) 35%,transparent 68%);opacity:0;transition:opacity .4s}
-.lamp .cone{position:absolute;left:8px;top:18px;width:46px;height:40px;clip-path:polygon(30% 0,62% 0,100% 100%,0 100%);background:linear-gradient(rgba(255,230,150,.75),rgba(255,230,150,0));opacity:0;transition:opacity .4s;pointer-events:none}
+  background:radial-gradient(circle,rgba(255,214,102,calc(.75*var(--glow))) 0,rgba(255,214,102,calc(.25*var(--glow))) 35%,transparent 68%);opacity:0;transition:opacity .6s}
+.lamp .cone{position:absolute;left:8px;top:18px;width:46px;height:40px;clip-path:polygon(30% 0,62% 0,100% 100%,0 100%);background:linear-gradient(rgba(255,230,150,.75),rgba(255,230,150,0));opacity:0;transition:opacity .6s;pointer-events:none}
 .desk.lamp-on .bulb{fill:#ffd166}
 .desk.lamp-on .glow,.desk.lamp-on .cone{opacity:1}
 .desk.lamp-on .lamp{animation:flick .6s 1}
-.desk.lamp-focus .bulb{fill:#f87171}
-.desk.lamp-focus .glow{background:radial-gradient(circle,rgba(248,113,113,calc(.7*var(--glow))) 0,rgba(248,113,113,calc(.2*var(--glow))) 35%,transparent 68%)}
-.desk.lamp-focus .cone{background:linear-gradient(rgba(252,165,165,.7),rgba(252,165,165,0))}
 @keyframes flick{0%{opacity:.3}15%{opacity:1}25%{opacity:.4}40%{opacity:1}55%{opacity:.7}100%{opacity:1}}
 
 /* monitor */
 .monitor{position:absolute;right:6px;bottom:20px;width:44px;height:30px;border:3px solid #1e293b;border-radius:5px;background:#020617;overflow:hidden}
-.monitor::after{content:"";position:absolute}
 .stand{position:absolute;right:24px;bottom:14px;width:6px;height:8px;background:#1e293b}
 .stand::after{content:"";position:absolute;bottom:-2px;left:-6px;width:18px;height:3px;border-radius:2px;background:#1e293b}
 .screen{position:absolute;inset:0;padding:3px;display:flex;flex-direction:column;gap:2px;opacity:0;transition:opacity .3s}
@@ -131,10 +175,11 @@ main{max-width:1400px;margin:auto;padding:6px 16px 30px}
 .desk.screen-lock .screen{opacity:1;background:#1e293b;justify-content:center;align-items:center}
 .desk.screen-lock .screen i{display:none}
 .desk.screen-lock .screen::after{content:"🔒";font-size:11px;animation:pulse 2s infinite}
+.desk.screen-idle .screen{opacity:1;background:#1e293b;justify-content:center;align-items:center}
+.desk.screen-idle .screen i{display:none}
+.desk.screen-idle .screen::after{content:"💤";font-size:10px;opacity:.7}
 @keyframes code{0%{width:10%}100%{width:90%}}
 @keyframes pulse{50%{opacity:.35}}
-.mug{position:absolute;left:46px;bottom:24px;width:9px;height:10px;background:#f8fafc;border-radius:1px 1px 3px 3px;opacity:.9}
-.mug::after{content:"";position:absolute;right:-4px;top:2px;width:4px;height:5px;border:2px solid #f8fafc;border-left:0;border-radius:0 4px 4px 0}
 
 /* ---------- Meeting room ---------- */
 .stage{position:relative;height:240px}
@@ -167,10 +212,18 @@ main{max-width:1400px;margin:auto;padding:6px 16px 30px}
 .reception{position:absolute;z-index:6;top:30px;left:50%;translate:-50% 0;width:220px;height:42px;border-radius:22px 22px 6px 6px;background:linear-gradient(#ef4444,#b91c1c);color:#fff;display:grid;place-items:center;font-weight:800;box-shadow:0 6px 0 #7f1d1d}
 .entrance{position:absolute;bottom:-6px;inset-inline-start:24px;width:90px;height:18px;background:repeating-linear-gradient(90deg,#94a3b8 0 4px,#cbd5e1 4px 14px);border-radius:4px}
 .entrance::after{content:"المدخل";position:absolute;top:-22px;left:0;right:0;text-align:center;font-size:12px;font-weight:800;color:var(--muted)}
+.pubwall{position:absolute;top:22px;inset-inline-end:20px;padding:6px 12px;border-radius:12px;background:#0f172a;color:#fff;font-weight:800;font-size:13px;display:flex;gap:8px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.pubwall b{font-size:20px;color:#facc15}
+.pubwall.flash{animation:bump .6s}
 
 /* ---------- People ---------- */
 .people{position:absolute;inset:0;z-index:5;pointer-events:none}
-.person{position:absolute;left:0;top:0;width:44px;height:70px;translate:-50% -100%;pointer-events:auto;cursor:pointer;transition-property:left,top;transition-timing-function:linear;outline:none}
+.routes{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.routes path{fill:none;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2 10;animation:dash .6s linear infinite;opacity:.9;transition:opacity .6s}
+.routes path.fade{opacity:0}
+.routes circle{animation:pulse 1s infinite}
+@keyframes dash{to{stroke-dashoffset:-12}}
+.person{position:absolute;left:0;top:0;width:44px;height:70px;translate:-50% -100%;pointer-events:auto;cursor:pointer;transition-property:left,top,opacity;transition-timing-function:linear;outline:none}
 .person .fig{position:absolute;inset:0;transform-origin:50% 100%}
 .person.flip .fig{transform:scaleX(-1)}
 .person .torso{position:absolute;left:7px;top:30px;width:30px;height:25px;background:var(--shirt);border-radius:13px 13px 6px 6px}
@@ -193,22 +246,19 @@ main{max-width:1400px;margin:auto;padding:6px 16px 30px}
 .person.hw-ghutra .cover,.person.hw-ghutra .ctop{background:#f8fafc}
 .person.hw-hair .cover{display:none}
 .person.hw-hair .ctop{height:10px}
-.person .phones{position:absolute;top:0;left:5px;width:34px;height:20px;border:4px solid #111827;border-bottom:0;border-radius:18px 18px 0 0;display:none}
-.person .phones::before,.person .phones::after{content:"";position:absolute;bottom:-8px;width:8px;height:11px;border-radius:4px;background:#ef4444}
-.person .phones::before{left:-7px}.person .phones::after{right:-7px}
-.person .cup{position:absolute;display:none;right:-8px;top:16px;width:9px;height:10px;background:#fff;border-radius:1px 1px 3px 3px;box-shadow:inset 0 3px 0 #92400e}
+.person .carry{position:absolute;display:none;top:36px;left:9px;width:26px;height:18px;border-radius:2px 2px 3px 3px;background:var(--pc,#fbbf24);box-shadow:inset 0 4px 0 rgba(255,255,255,.35),0 2px 4px rgba(0,0,0,.3)}
+.person .carry::before{content:"";position:absolute;top:-4px;left:3px;width:10px;height:5px;border-radius:2px 2px 0 0;background:var(--pc,#fbbf24)}
 .tag{position:absolute;bottom:100%;left:50%;translate:-50% -2px;white-space:nowrap;font-size:10px;font-weight:800;padding:0 6px;border-radius:6px;background:rgba(15,23,42,.82);color:#fff;pointer-events:none;line-height:16px}
 .bubble{position:absolute;top:-8px;right:-18px;width:24px;height:24px;border-radius:50% 50% 50% 4px;background:#fff;display:grid;place-items:center;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.25);border:2px solid var(--sc);transition:.25s;transform-origin:0 100%}
-.person.walking .bubble{transform:scale(0)}
-.zz{position:absolute;top:-6px;left:-6px;font-weight:800;font-size:11px;color:#a855f7;display:none}
+.person.walking:not(.s-delivering) .bubble{transform:scale(0)}
 
-/* status animations */
 @keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
 @keyframes stepL{from{transform:rotate(-24deg)}to{transform:rotate(24deg)}}
 @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
 @keyframes typeL{from{transform:rotate(-18deg)}to{transform:rotate(-34deg)}}
 @keyframes typeR{from{transform:rotate(34deg)}to{transform:rotate(18deg)}}
 @keyframes nod{0%,100%{transform:translateY(0)}50%{transform:translateY(1.5px)}}
+@keyframes look{0%,40%,100%{transform:translateX(0)}50%,70%{transform:translateX(-2px)}80%,90%{transform:translateX(2px)}}
 @keyframes talk{0%,100%{height:3px}50%{height:6px;border:2px solid #7f1d1d;background:#7f1d1d}}
 @keyframes gesture{0%,60%,100%{transform:rotate(-10deg)}75%{transform:rotate(-60deg)}}
 @keyframes sip{0%,70%,100%{transform:rotate(20deg)}80%,92%{transform:rotate(130deg)}}
@@ -217,33 +267,35 @@ main{max-width:1400px;margin:auto;padding:6px 16px 30px}
 .person.walking .leg.l{animation:stepL .34s infinite alternate ease-in-out}
 .person.walking .leg.r{animation:stepL .34s infinite alternate-reverse ease-in-out}
 .person.walking .fig{animation:bob .17s infinite alternate}
-.person.walking.flip .fig{animation:bob .17s infinite alternate;transform:scaleX(-1)}
+.person.walking.flip .fig{transform:scaleX(-1)}
 .person.walking .arm.l{animation:stepL .34s infinite alternate-reverse}
 .person.walking .arm.r{animation:stepL .34s infinite alternate}
 
 .person.s-working:not(.walking) .arm.l{animation:typeL .18s infinite alternate}
 .person.s-working:not(.walking) .arm.r{animation:typeR .18s infinite alternate-reverse}
 .person.s-working:not(.walking) :is(.head,.ctop,.agal,.cover){animation:nod 3s infinite}
-.person.s-focus .phones{display:block}
-.person.s-focus:not(.walking) .arm.l{animation:typeL .12s infinite alternate}
-.person.s-focus:not(.walking) .arm.r{animation:typeR .12s infinite alternate-reverse}
-.person.s-focus:not(.walking) :is(.head,.ctop,.agal,.cover,.phones){animation:nod .8s infinite}
+.person.s-idle:not(.walking) .eyes{animation:look 5s infinite}
+.person.s-idle:not(.walking) .arm.l{transform:rotate(-8deg)}
+.person.s-idle:not(.walking) .arm.r{transform:rotate(8deg)}
+.person.s-delivering .carry{display:block}
+.person.s-delivering .arm.l{animation:none!important;transform:rotate(-38deg)}
+.person.s-delivering .arm.r{animation:none!important;transform:rotate(38deg)}
 .person.s-meeting:not(.walking) .mouth{animation:talk .5s infinite}
 .person.s-meeting:not(.walking) .arm.r{animation:gesture 3s infinite}
 .person.s-break:not(.walking) .arm.r{animation:sip 4s infinite}
 .person.s-break:not(.walking) .arm.r::before{content:"";position:absolute;bottom:-8px;left:-1px;width:9px;height:10px;background:#fff;border-radius:1px 1px 3px 3px;box-shadow:inset 0 3px 0 #92400e}
-.person.s-break .cup{display:none}
 .person.s-offline:not(.walking){opacity:0;pointer-events:none}
-.person{transition-property:left,top,opacity}
-.person.s-offline{transition-duration:var(--d,0s),var(--d,0s),.8s}
 
 .person.dim{opacity:.22}
 .person.hl .fig{filter:drop-shadow(0 0 4px #facc15) drop-shadow(0 0 8px #facc15)}
 .person.sel .fig{filter:drop-shadow(0 0 3px #2563eb) drop-shadow(0 0 7px #2563eb)}
 .person:focus-visible .fig{filter:drop-shadow(0 0 3px #2563eb)}
 .person.done .bubble{animation:pop .5s}
-.float{position:absolute;z-index:9;pointer-events:none;font-weight:800;font-size:13px;color:#16a34a;background:#fff;padding:1px 7px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.2);translate:-50% -100%;animation:rise 1.8s forwards;white-space:nowrap}
-@keyframes rise{to{transform:translateY(-36px);opacity:0}}
+.float{position:absolute;z-index:9;pointer-events:none;font-weight:800;font-size:13px;color:#16a34a;background:#fff;padding:1px 7px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.2);translate:-50% -100%;animation:rise 2s forwards;white-space:nowrap}
+@keyframes rise{to{transform:translateY(-40px);opacity:0}}
+.flyer{position:absolute;left:0;top:0;z-index:4000;width:22px;height:15px;margin:-7px 0 0 -11px;border-radius:2px;background:var(--pc);box-shadow:inset 0 3px 0 rgba(255,255,255,.35),0 4px 10px rgba(0,0,0,.35);pointer-events:none}
+.flyer::before{content:"";position:absolute;top:-3px;left:2px;width:9px;height:4px;border-radius:2px 2px 0 0;background:var(--pc)}
+.confetti{position:absolute;z-index:4000;width:7px;height:10px;pointer-events:none;border-radius:2px}
 
 /* ---------- Panels ---------- */
 .drawer{position:fixed;z-index:60;top:0;bottom:0;left:0;width:min(370px,100%);background:var(--panel);box-shadow:0 0 40px rgba(0,0,0,.25);transform:translateX(-105%);transition:transform .35s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column}
@@ -252,23 +304,23 @@ main{max-width:1400px;margin:auto;padding:6px 16px 30px}
 .drawer-body{padding:16px;overflow:auto;display:flex;flex-direction:column;gap:16px}
 .x{margin-inline-start:auto;border:0;background:var(--floor2);width:34px;height:34px;border-radius:10px;font-size:18px}
 .av{width:64px;height:64px;border-radius:16px;background:var(--floor2);position:relative;overflow:hidden;flex:none}
-.av .person{position:absolute;left:50%;top:72px;pointer-events:none}
+.av .person{position:absolute;left:50%;top:76px;pointer-events:none}
 .av .tag,.av .bubble{display:none}
 .h1{font-size:20px;font-weight:800;margin:0}
 .sub{color:var(--muted);font-size:13px}
 .lbl{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px}
-.st-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.st-btn{border:2px solid var(--line);background:var(--panel);border-radius:10px;padding:8px;font-weight:700;font-size:13px;display:flex;gap:6px;align-items:center}
-.st-btn.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,var(--panel))}
+.st-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-weight:800;background:color-mix(in srgb,var(--c) 16%,var(--panel));border:1px solid var(--c)}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.task{border:1px solid var(--line);border-inline-start:5px solid var(--pc);border-radius:12px;padding:10px;background:var(--floor);display:flex;flex-direction:column;gap:6px}
 .bar{height:10px;border-radius:999px;background:var(--floor2);overflow:hidden;border:1px solid var(--line)}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width .5s}
+.bar i{display:block;height:100%;background:var(--pc,#22c55e);transition:width .5s}
 .row{display:flex;gap:8px;align-items:center}
 .in{width:100%;border:1px solid var(--line);background:var(--floor);padding:8px 10px;border-radius:10px}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px}
 .kv span:nth-child(odd){color:var(--muted)}
 .mlist{display:flex;flex-direction:column;gap:6px}
 .mitem{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--floor);text-align:start}
-.mitem .dot{width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 6px var(--c)}
+.mitem .dot{width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 6px var(--c);flex:none}
 .mitem small{margin-inline-start:auto;color:var(--muted)}
 .danger{color:#dc2626}
 
@@ -276,30 +328,25 @@ main{max-width:1400px;margin:auto;padding:6px 16px 30px}
 @media (max-width:900px){.bottom{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
 .card h3{margin:0 0 10px;font-size:15px}
-.log{list-style:none;margin:0;padding:0;max-height:230px;overflow:auto;display:flex;flex-direction:column;gap:4px;font-size:13px}
+.log{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:4px;font-size:13px}
 .log li{display:flex;gap:8px;padding:5px 8px;border-radius:8px;background:var(--floor);animation:fadein .4s}
 .log time{color:var(--muted);font-variant-numeric:tabular-nums;direction:ltr}
 @keyframes fadein{from{opacity:0;transform:translateY(-4px)}}
 .legend{display:flex;flex-direction:column;gap:8px;font-size:13px}
-.legend div{display:flex;gap:8px;align-items:center}
-.dept-bars{display:flex;flex-direction:column;gap:8px;font-size:13px}
-.dept-bars .db{display:grid;grid-template-columns:120px 1fr 36px;gap:8px;align-items:center}
-.seg{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--floor2)}
-.seg i{display:block;height:100%;transition:width .5s}
+.legend div{display:flex;gap:8px;align-items:flex-start}
 
 dialog{border:0;border-radius:18px;padding:0;background:var(--panel);color:var(--ink);width:min(420px,calc(100% - 32px));box-shadow:0 30px 80px rgba(0,0,0,.4)}
 dialog::backdrop{background:rgba(2,6,23,.55)}
 dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 .toast{position:fixed;z-index:80;bottom:18px;left:50%;translate:-50% 0;background:#0f172a;color:#fff;padding:10px 16px;border-radius:12px;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;transition:.3s;pointer-events:none}
 .toast.show{opacity:1;transform:translateY(-6px)}
-@media (max-width:600px){.top{position:static}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:0s!important;transition-duration:0s!important}}
 </style>
 </head>
 <body>
 <header class="top">
   <div class="top-in">
-    <div class="brand"><div class="logo">Mg</div><div>مكاتب شركة Mg<small>لوحة حيّة لأقسام الشركة وحالة الموظفين</small></div></div>
+    <div class="brand"><div class="logo">Mg</div><div>مكاتب شركة Mg<small>محاكاة حيّة لسير العمل بين الأقسام</small></div></div>
     <div class="clock" id="clock">10:00</div>
     <div class="stats" id="stats"></div>
   </div>
@@ -307,27 +354,33 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
     <button class="btn active" id="simBtn">⏸️ إيقاف المحاكاة</button>
     <button class="btn" id="speedBtn">⏩ السرعة ×1</button>
     <button class="btn" id="themeBtn">🌗 الإضاءة: تلقائي</button>
+    <button class="btn green" id="projBtn">💡 مشروع جديد</button>
     <button class="btn" id="meetBtn">🤝 بدء اجتماع</button>
     <button class="btn primary" id="addBtn">➕ موظف جديد</button>
-    <input class="search" id="search" type="search" placeholder="🔍 ابحث عن موظف أو مهمة…">
+    <input class="search" id="search" type="search" placeholder="🔍 ابحث عن موظف أو مشروع…">
     <button class="btn" id="resetBtn" title="استعادة البيانات الافتراضية">↺</button>
   </div>
 </header>
 
 <main>
-  <div class="floor" id="floor"><div class="people" id="people"></div></div>
+  <section class="board" aria-label="مراحل سير العمل">
+    <div class="board-head"><h2>🔄 خط سير الإنتاج</h2><span class="sub">كل مشروع ينتقل من قسم إلى القسم التالي عند تسليمه</span></div>
+    <div class="cols" id="cols"></div>
+  </section>
+
+  <div class="floor" id="floor"><div class="people" id="people"><svg class="routes" id="routes"></svg></div></div>
+
   <div class="bottom">
     <section class="card"><h3>📋 سجل النشاط</h3><ul class="log" id="log"></ul></section>
     <section class="card">
-      <h3>📊 توزيع الأقسام</h3>
-      <div class="dept-bars" id="deptBars"></div>
-      <h3 style="margin-top:16px">💡 دليل الإشارات</h3>
+      <h3>💡 دليل الإشارات</h3>
       <div class="legend">
-        <div>💡 <span>لمبة صفراء: الموظف يعمل على مكتبه</span></div>
-        <div>🔴 <span>لمبة حمراء + سماعات: وضع التركيز، لا تزعج</span></div>
-        <div>🔒 <span>شاشة مقفلة: الموظف في اجتماع أو استراحة</span></div>
-        <div>🚶 <span>الشخصية تمشي بين الغرف عند تغيّر حالتها</span></div>
-        <div>🖱️ <span>اضغط على أي موظف أو قسم لعرض التفاصيل</span></div>
+        <div>💡 <span><b>لمبة مضاءة:</b> الموظفة بدأت العمل على مهمة وهي على مكتبها.</span></div>
+        <div>⚫ <span><b>لمبة مطفأة:</b> أنهت المهمة، أو هي خاملة، أو بعيدة عن مكتبها.</span></div>
+        <div>📁 <span><b>ملف على المكتب وشريط ملوّن:</b> المهمة الحالية ونسبة إنجازها.</span></div>
+        <div>📦 <span><b>تسليم:</b> تمشي الشخصية بالملف إلى صندوق «الوارد» في القسم التالي، ويظهر مسار متقطع بلون المشروع.</span></div>
+        <div>🛬 <span><b>استلام:</b> يطير الملف من الصندوق إلى مكتب أول موظف متاح فتضيء لمبته.</span></div>
+        <div>🖱️ <span>اضغط على أي موظف أو قسم أو مشروع لعرض التفاصيل والتحكم.</span></div>
       </div>
     </section>
   </div>
@@ -337,18 +390,29 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 
 <dialog id="addDlg">
   <form method="dialog" id="addForm">
-    <div class="row"><h2 class="h1">➕ إضافة موظف</h2></div>
+    <h2 class="h1">➕ إضافة موظف</h2>
     <label><div class="lbl">الاسم</div><input class="in" name="name" required maxlength="20"></label>
     <label><div class="lbl">المسمى الوظيفي</div><input class="in" name="role" required maxlength="30"></label>
     <label><div class="lbl">القسم</div><select class="in" name="dept" id="deptSel"></select></label>
     <div class="row">
       <label style="flex:1"><div class="lbl">غطاء الرأس / الشعر</div>
-        <select class="in" name="hw"><option value="shemagh">شماغ</option><option value="ghutra">غترة</option><option value="hijab">حجاب</option><option value="hair">شعر</option></select></label>
+        <select class="in" name="hw"><option value="hijab">حجاب</option><option value="shemagh">شماغ</option><option value="ghutra">غترة</option><option value="hair">شعر</option></select></label>
       <label><div class="lbl">لون القميص</div><input type="color" name="shirt" value="#2563eb" style="width:56px;height:40px;border:0;background:none"></label>
     </div>
     <div class="row" style="justify-content:flex-end">
       <button class="btn" value="cancel" formnovalidate>إلغاء</button>
       <button class="btn primary" value="ok">إضافة</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="projDlg">
+  <form method="dialog" id="projForm">
+    <h2 class="h1">💡 مشروع جديد</h2>
+    <div class="sub">يدخل المشروع صندوق وارد الإدارة، ثم يمرّ على الأقسام بالترتيب حتى يُنشر.</div>
+    <label><div class="lbl">عنوان الفيديو</div><input class="in" name="title" required maxlength="40" placeholder="مثال: حلقة عن أسرار الفضاء"></label>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn" value="cancel" formnovalidate>إلغاء</button>
+      <button class="btn green" value="ok">إرسال للإدارة</button>
     </div>
   </form>
 </dialog>
@@ -360,90 +424,118 @@ dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
 
 /* ================= Data ================= */
 const STATUS = {
-  working:{label:'يعمل',            color:'#22c55e', icon:'⌨️'},
-  focus:  {label:'تركيز - لا تزعج', color:'#ef4444', icon:'🎧'},
-  meeting:{label:'في اجتماع',       color:'#a855f7', icon:'💬'},
-  break:  {label:'استراحة',         color:'#f59e0b', icon:'☕'},
-  offline:{label:'خارج المكتب',     color:'#64748b', icon:'🚪'},
+  working:   {label:'قيد العمل', color:'#22c55e', icon:'⌨️'},
+  idle:      {label:'خامل',          color:'#94a3b8', icon:'💤'},
+  delivering:{label:'تسليم العمل',    color:'#3b82f6', icon:'📦'},
+  meeting:   {label:'في اجتماع',      color:'#a855f7', icon:'💬'},
+  break:     {label:'استراحة',        color:'#f59e0b', icon:'☕'},
+  offline:   {label:'خارج المكتب',    color:'#475569', icon:'🚪'},
 };
 const DEPTS = [
-  {id:'admin',      name:'الإدارة العامة',     icon:'🏛️', color:'#8b5cf6', desks:3},
-  {id:'edit',       name:'المونتاج',           icon:'🎬', color:'#ef4444', desks:4},
-  {id:'design',     name:'التصميم والجرافيكس', icon:'🎨', color:'#ec4899', desks:3},
-  {id:'writing',    name:'كتابة المحتوى',      icon:'✍️', color:'#f59e0b', desks:3},
-  {id:'marketing',  name:'التسويق والنشر',     icon:'📣', color:'#10b981', desks:3},
-  {id:'tech',       name:'التقنية',            icon:'💻', color:'#3b82f6', desks:3},
-  {id:'production', name:'الإنتاج والتصوير',   icon:'🎥', color:'#06b6d4', desks:3},
+  {id:'admin',      name:'الإدارة',            icon:'🏛️', color:'#8b5cf6', desks:2, stage:'اعتماد الفكرة'},
+  {id:'writing',    name:'كتابة المحتوى',      icon:'✍️', color:'#f59e0b', desks:3, stage:'كتابة السكربت'},
+  {id:'production', name:'الإنتاج والتصوير',   icon:'🎥', color:'#06b6d4', desks:3, stage:'التصوير'},
+  {id:'edit',       name:'المونتاج',           icon:'🎬', color:'#ef4444', desks:3, stage:'المونتاج'},
+  {id:'design',     name:'التصميم والجرافيكس', icon:'🎨', color:'#ec4899', desks:3, stage:'الصورة المصغرة'},
+  {id:'marketing',  name:'التسويق والنشر',     icon:'📣', color:'#10b981', desks:3, stage:'النشر'},
+  {id:'tech',       name:'الدعم التقني',       icon:'💻', color:'#3b82f6', desks:3, stage:'بلاغات تقنية'},
 ];
+const PIPE = ['admin','writing','production','edit','design','marketing'];
+const DEPT = Object.fromEntries(DEPTS.map(d => [d.id, d]));
 const SPECIAL = {
   meeting:{name:'غرفة الاجتماعات', icon:'🤝', color:'#a855f7'},
   lounge: {name:'الاستراحة والكافتيريا', icon:'☕', color:'#f59e0b'},
   lobby:  {name:'الاستقبال', icon:'🚪', color:'#64748b'},
 };
-const TASKS = {
-  admin:['مراجعة خطة الربع القادم','اعتماد ميزانية الحملة','متابعة مؤشرات الأداء','اجتماع مع الشركاء'],
-  edit:['مونتاج حلقة الأسبوع','تلوين لقطات التصوير','إضافة المؤثرات الصوتية','قص الشورتات','تصدير النسخة النهائية'],
-  design:['تصميم الصورة المصغرة','هوية بصرية للسلسلة','جرافيكس الافتتاحية','قوالب الترجمة'],
-  writing:['كتابة سكربت الحلقة','بحث عن أفكار جديدة','تدقيق النصوص','كتابة وصف الفيديو'],
-  marketing:['جدولة منشورات الأسبوع','تحليل أداء القناة','الرد على التعليقات','تحسين العناوين'],
-  tech:['صيانة سيرفر الرفع','أتمتة سير العمل','نسخ احتياطي للمشاريع','تحديث أجهزة المونتاج'],
-  production:['تجهيز الإضاءة للتصوير','تصوير مشهد خارجي','ضبط الصوت والميكروفونات','ترتيب الاستوديو'],
-};
+const IDEAS = ['حلقة: أسرار الفضاء','تحدي 24 ساعة بدون جوال','شورت: معلومة في 30 ثانية','قصة نجاح: من الصفر','تجربة أكل الشوارع','سلسلة: تاريخ الأسواق','شورت: خدعة طبخ سريعة',
+  'وثائقي: مدن مهجورة','حلقة: أغرب الحقائق','تجربة: يوم مع مزارع','شورت: لغز اليوم','حلقة: اختراعات غيّرت العالم','بودكاست مع ضيف','تحدي: ميزانية 100 ريال','شورت: قبل وبعد'];
+const TICKETS = ['جهاز المونتاج بطيء','الطابعة لا تعمل','مشكلة في الإنترنت','تحديث برنامج التصميم','الميكروفون لا يسجّل','استعادة ملف محذوف'];
+const PCOLORS = ['#f97316','#8b5cf6','#06b6d4','#e11d48','#84cc16','#eab308','#0ea5e9','#d946ef','#14b8a6','#f43f5e'];
 const SKINS = ['#f1c27d','#e0ac69','#c68642','#ffdbac','#d4a373','#8d5524'];
 const SEED = [
-  ['ماجد','المدير التنفيذي','admin','shemagh','#1e293b','working'],
-  ['منيرة','مديرة العمليات','admin','hijab','#7c3aed','meeting'],
-  ['فهد','رئيس المونتاج','edit','ghutra','#dc2626','focus'],
-  ['ريم','محررة فيديو','edit','hijab','#0ea5e9','working'],
-  ['سلمان','محرر فيديو','edit','hair','#16a34a','working'],
-  ['لمى','مصممة جرافيك','design','hijab','#db2777','working'],
-  ['عمر','مصمم موشن','design','hair','#f97316','break'],
-  ['نورة','كاتبة محتوى','writing','hijab','#ca8a04','working'],
-  ['يوسف','باحث محتوى','writing','shemagh','#4f46e5','meeting'],
-  ['سارة','مديرة التسويق','marketing','hijab','#059669','working'],
-  ['تركي','أخصائي سوشيال ميديا','marketing','ghutra','#2563eb','offline'],
-  ['خالد','مهندس أنظمة','tech','hair','#334155','focus'],
-  ['دانة','مطوّرة','tech','hijab','#9333ea','working'],
-  ['عبدالله','مصوّر','production','shemagh','#0891b2','break'],
-  ['جود','فنية صوت','production','hijab','#be123c','working'],
+  ['ماجد','المدير التنفيذي','admin','shemagh','#1e293b'],
+  ['منيرة','مديرة العمليات','admin','hijab','#7c3aed'],
+  ['نورة','كاتبة محتوى','writing','hijab','#ca8a04'],
+  ['يوسف','باحث محتوى','writing','shemagh','#4f46e5'],
+  ['عبدالله','مصوّر','production','shemagh','#0891b2'],
+  ['جود','فنية صوت','production','hijab','#be123c'],
+  ['فهد','رئيس المونتاج','edit','ghutra','#dc2626'],
+  ['ريم','محررة فيديو','edit','hijab','#0ea5e9'],
+  ['سلمان','محرر فيديو','edit','hair','#16a34a'],
+  ['لمى','مصممة جرافيك','design','hijab','#db2777'],
+  ['عمر','مصمم موشن','design','hair','#f97316'],
+  ['سارة','مديرة التسويق','marketing','hijab','#059669'],
+  ['تركي','أخصائي سوشيال ميديا','marketing','ghutra','#2563eb'],
+  ['خالد','مهندس أنظمة','tech','hair','#334155'],
+  ['دانة','مطوّرة','tech','hijab','#9333ea'],
 ];
-const STORE = 'mg-office-v1';
+const STORE = 'mg-office-v2';
 const rand = a => a[Math.floor(Math.random()*a.length)];
 const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let uid = Date.now();
+const newId = p => p + (uid++).toString(36);
 
 function seed(){
   const used = {};
-  return SEED.map(([name,role,dept,hw,shirt,status],i) => {
-    used[dept] = (used[dept]||0);
-    return {id:'e'+i, name, role, dept, hw, shirt, skin:SKINS[i%SKINS.length], status,
-      desk:used[dept]++, task:rand(TASKS[dept]), progress:Math.floor(Math.random()*70), done:0, since:0};
-  });
+  const emps = SEED.map(([name,role,dept,hw,shirt],i) => ({id:'e'+i, name, role, dept, hw, shirt, skin:SKINS[i%SKINS.length],
+    status:'idle', desk:(used[dept] = (used[dept] ?? -1) + 1), taskId:null, mins:0, done:0, since:0}));
+  const E = n => emps.find(e => e.name===n);
+  const projects = [];
+  const mk = (title, dept, who, progress) => {
+    const p = {id:newId('p'), title, color:PCOLORS[projects.length%PCOLORS.length], dept, assignee:null, carrier:null, progress, q:projects.length};
+    if(who){ p.assignee = E(who).id; E(who).taskId = p.id; E(who).status = 'working'; }
+    projects.push(p); return p;
+  };
+  mk('فكرة: تجربة أكل الشوارع','admin','ماجد',55);
+  mk('سلسلة: تاريخ الأسواق','writing','نورة',70);
+  mk('قصة نجاح: من الصفر','production','عبدالله',35);
+  mk('تحدي 24 ساعة بدون جوال','edit','فهد',80);
+  mk('شورت: خدعة طبخ سريعة','edit','ريم',20);
+  mk('حلقة: أغرب الحقائق','design','لمى',45);
+  mk('حلقة: أسرار الفضاء','marketing','سارة',60);
+  mk('شورت: معلومة في 30 ثانية','writing',null,0);
+  const t = mk('جهاز المونتاج بطيء','tech','خالد',30); t.kind = 'ticket'; t.from = 'edit'; t.color = '#64748b';
+  E('عمر').status = 'break'; E('تركي').status = 'offline'; E('منيرة').status = 'meeting';
+  return {emps, projects};
 }
 function load(){
   try{
     const d = JSON.parse(localStorage.getItem(STORE));
-    if(d && Array.isArray(d.emps) && d.emps.length) return d;
+    if(d && Array.isArray(d.emps) && Array.isArray(d.projects)) return d;
   }catch(e){}
   return null;
 }
 const saved = load();
+const init = saved || seed();
 const S = {
-  emps: saved ? saved.emps : seed(),
-  clock: saved?.clock ?? 10*60,
-  day: saved?.day ?? 1,
+  emps: init.emps, projects: init.projects,
+  published: saved?.published ?? 12, pubList: saved?.pubList ?? ['حلقة: اختراعات غيّرت العالم','شورت: لغز اليوم'],
+  clock: saved?.clock ?? 9*60+30, day: saved?.day ?? 1,
   sim:true, speed:1, theme:saved?.theme || 'auto',
-  filter:null, search:'', selected:null, tick:0,
+  filter:null, search:'', selected:null, selRoom:null, tick:0, q: 100,
 };
 let saveT;
 function save(){ clearTimeout(saveT); saveT = setTimeout(() => {
-  try{ localStorage.setItem(STORE, JSON.stringify({emps:S.emps, clock:S.clock, day:S.day, theme:S.theme})); }catch(e){}
+  try{ localStorage.setItem(STORE, JSON.stringify({emps:S.emps, projects:S.projects, published:S.published, pubList:S.pubList, clock:S.clock, day:S.day, theme:S.theme})); }catch(e){}
 }, 400); }
 
+const proj = id => S.projects.find(p => p.id===id);
+const emp = id => S.emps.find(e => e.id===id);
+const queueOf = dept => S.projects.filter(p => p.dept===dept && !p.assignee && !p.carrier).sort((a,b) => a.q-b.q);
+function nextDept(p){
+  if(p.kind==='ticket') return p.from;
+  const i = PIPE.indexOf(p.dept);
+  return i>=0 && i<PIPE.length-1 ? PIPE[i+1] : null;
+}
+const V = (e, m, f) => e.hw==='hijab' ? f : m;
+function deptName(id){ return (DEPT[id]||SPECIAL[id]||{}).name || id; }
+
 /* ================= Build floor ================= */
-const floor = $('#floor'), peopleLayer = $('#people');
-function plate(id, name, icon){
-  return `<div class="plate" data-open="${id}"><span class="ic">${icon}</span>${esc(name)}<span class="cnt" data-cnt="${id}">0</span></div><div class="ceiling"></div><div class="door"><span class="pt"></span></div>`;
+const floor = $('#floor'), peopleLayer = $('#people'), routesSvg = $('#routes');
+function plate(id, name, icon, step){
+  return `<div class="plate" data-open="${id}"><span class="ic">${icon}</span><span class="nm">${esc(name)}</span>${step?`<span class="step">${step}</span>`:''}<span class="cnt" data-cnt="${id}">0</span></div><div class="ceiling"></div><div class="door"><span class="pt"></span></div>`;
 }
 function buildFloor(){
   let html = '';
@@ -458,31 +550,30 @@ function buildFloor(){
             <path d="M9 41 L6 22 L17 10" stroke="#334155" stroke-width="2.5" fill="none" stroke-linecap="round"/>
             <path d="M11 9 L22 3 L28 15 Z" fill="#475569"/>
             <circle class="bulb" cx="21" cy="12" r="3.5"/></svg><span class="glow"></span></div>
-          <span class="mug"></span>
+          <span class="dfolder"></span>
           <span class="stand"></span><div class="monitor"><div class="screen"><i></i><i></i><i></i><i></i></div></div>
           <div class="nameplate empty"><i></i><span>مكتب شاغر</span></div>
+          <div class="dbar"><i></i></div>
         </div></div>`;
     }
-    html += `<section class="room" data-room="${d.id}" style="grid-area:${d.id};--c:${d.color}">${plate(d.id,d.name,d.icon)}<div class="desks">${desks}</div></section>`;
+    const step = PIPE.indexOf(d.id) >= 0 ? `المرحلة ${PIPE.indexOf(d.id)+1}` : '';
+    html += `<section class="room" data-room="${d.id}" style="grid-area:${d.id};--c:${d.color}">${plate(d.id,d.name,d.icon,step)}<div class="desks">${desks}</div>
+      <div class="tray" data-tray="${d.id}" title="صندوق الوارد"><span class="badge"></span><span class="spot"></span></div></section>`;
   }
-  // meeting
   const ms = [[30,108],[50,108],[70,108],[5,140],[95,140],[30,232],[50,232],[70,232]];
-  html += `<section class="room" data-room="meeting" style="grid-area:meeting;--c:${SPECIAL.meeting.color}">${plate('meeting',SPECIAL.meeting.name,SPECIAL.meeting.icon)}
+  html += `<section class="room special" data-room="meeting" style="grid-area:meeting;--c:${SPECIAL.meeting.color}">${plate('meeting',SPECIAL.meeting.name,SPECIAL.meeting.icon)}
     <div class="stage"><div class="tv"><span>● اجتماع جارٍ</span></div><div class="mtable"></div>
     ${ms.map(([x,y],i)=>`<span class="spot" data-mspot="${i}" style="left:${x}%;top:${y}px"></span>`).join('')}</div></section>`;
-  // lounge
   const ls = [[20,96],[34,150],[80,96],[66,150],[44,206],[56,206],[90,150],[10,200]];
-  html += `<section class="room" data-room="lounge" style="grid-area:lounge;--c:${SPECIAL.lounge.color}">${plate('lounge',SPECIAL.lounge.name,SPECIAL.lounge.icon)}
+  html += `<section class="room special" data-room="lounge" style="grid-area:lounge;--c:${SPECIAL.lounge.color}">${plate('lounge',SPECIAL.lounge.name,SPECIAL.lounge.icon)}
     <div class="stage"><div class="coffee"><div class="steam"><i></i><i></i></div></div>
     <div class="plant" style="top:8px;left:10px"></div><div class="plant" style="bottom:10px;right:14px"></div>
     <div class="ctable"></div><div class="ctable b"></div><div class="sofa"></div>
     ${ls.map(([x,y],i)=>`<span class="spot" data-lspot="${i}" style="left:${x}%;top:${y}px"></span>`).join('')}</div></section>`;
-  // lobby
-  html += `<section class="room lobby" data-room="lobby" style="grid-area:lobby;--c:${SPECIAL.lobby.color}">${plate('lobby',SPECIAL.lobby.name,SPECIAL.lobby.icon)}
-    <div class="stage"><div class="plant" style="top:20px;right:30px"></div><div class="reception">Mg · أهلاً بكم</div>
+  html += `<section class="room special lobby" data-room="lobby" style="grid-area:lobby;--c:${SPECIAL.lobby.color}">${plate('lobby',SPECIAL.lobby.name,SPECIAL.lobby.icon)}
+    <div class="stage"><div class="pubwall" id="pubwall">🚀 فيديوهات منشورة <b id="pubCount">0</b></div><div class="reception">Mg · أهلاً بكم</div>
     <div class="entrance"><span class="spot" data-exit style="left:50%;top:6px"></span></div></div></section>`;
   floor.insertAdjacentHTML('beforeend', html);
-  // the lobby's own door is not needed (people go straight to entrance)
   $('[data-room="lobby"] .door').style.display = 'none';
 }
 
@@ -492,12 +583,13 @@ function personHTML(e){
   return `<div class="fig"><div class="torso"><div class="arm l"></div><div class="arm r"></div></div>
     <div class="leg l"></div><div class="leg r"></div>
     <div class="cover"></div><div class="head"><div class="eyes"></div><div class="mouth"></div></div>
-    <div class="ctop"></div><div class="agal"></div><div class="phones"></div><div class="cup"></div></div>
+    <div class="ctop"></div><div class="agal"></div><div class="carry"></div></div>
     <div class="tag">${esc(e.name)}</div><div class="bubble"></div>`;
 }
 function styleFor(e){
   const hw = e.hw==='hijab' ? '#334155' : e.hw==='hair' ? '#3b2416' : '#fff';
-  return `--shirt:${e.shirt};--skin:${e.skin};--hw:${e.hijabColor||hw};--sc:${STATUS[e.status].color}`;
+  const p = proj(e.carry || e.taskId);
+  return `--shirt:${e.shirt};--skin:${e.skin};--hw:${hw};--sc:${STATUS[e.status].color};--pc:${p ? p.color : '#fbbf24'}`;
 }
 function makePerson(e){
   const el = document.createElement('div');
@@ -510,7 +602,6 @@ function makePerson(e){
   el.addEventListener('keydown', ev => { if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); openEmp(e.id);} });
   peopleLayer.appendChild(el);
   els.set(e.id, el);
-  return el;
 }
 
 /* ---------- geometry ---------- */
@@ -520,9 +611,10 @@ function ptOf(node){
 }
 const deskEl = e => $(`[data-desk="${e.dept}-${e.desk}"]`);
 const doorOf = room => $(`[data-room="${room}"] .door .pt`);
+const trayOf = dept => $(`[data-tray="${dept}"]`);
 function slotFor(e, kind){
   const attr = kind==='meeting' ? 'mspot' : 'lspot';
-  const total = document.querySelectorAll(`[data-${attr}]`).length;
+  const total = $$(`[data-${attr}]`).length;
   const taken = new Set(S.emps.filter(o => o!==e && o.status===e.status && o.slot!=null).map(o => o.slot));
   if(e.slot!=null && !taken.has(e.slot) && e.slotKind===kind) return e.slot;
   let i = 0; while(taken.has(i) && i<total-1) i++;
@@ -530,17 +622,24 @@ function slotFor(e, kind){
 }
 function targetOf(e){
   switch(e.status){
-    case 'working': case 'focus': return {node:$('.seat', deskEl(e)), room:e.dept};
+    case 'working': case 'idle': return {node:$('.seat', deskEl(e)), room:e.dept};
+    case 'delivering': return {node:$('.spot', trayOf(e.deliverTo)), room:e.deliverTo};
     case 'meeting': return {node:$(`[data-mspot="${slotFor(e,'meeting')}"]`), room:'meeting'};
     case 'break':   return {node:$(`[data-lspot="${slotFor(e,'lounge')}"]`), room:'lounge'};
     default:        return {node:$('[data-exit]'), room:'lobby'};
   }
 }
-function place(el, p){
-  el.style.left = p.x+'px'; el.style.top = p.y+'px';
-  el.style.zIndex = Math.round(p.y);
+function routeFor(e, t){
+  const r = [];
+  if(e.loc !== t.room){
+    if(e.loc && e.loc !== 'lobby') r.push({node:doorOf(e.loc), room:e.loc});
+    if(t.room !== 'lobby') r.push({node:doorOf(t.room), room:t.room});
+  }
+  r.push(t); return r;
 }
+function place(el, p){ el.style.left = p.x+'px'; el.style.top = p.y+'px'; el.style.zIndex = Math.round(p.y); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const curPos = el => ({x:parseFloat(el.style.left)||0, y:parseFloat(el.style.top)||0});
 
 async function walk(e, animate=true){
   const el = els.get(e.id); if(!el) return;
@@ -549,34 +648,160 @@ async function walk(e, animate=true){
   if(!animate || !e.loc){
     el.style.transitionDuration = '0s';
     place(el, ptOf(t.node)); e.loc = t.room; e.arrived = true;
-    el.classList.remove('walking'); afterMove(e); return;
+    el.classList.remove('walking','flip'); afterMove(e); return;
   }
   e.arrived = false; afterMove(e);
-  const route = [];
-  if(e.loc !== t.room){
-    if(e.loc !== 'lobby') route.push({node:doorOf(e.loc), room:e.loc});
-    if(t.room !== 'lobby') route.push({node:doorOf(t.room), room:t.room});
-  }
-  route.push(t);
+  const route = routeFor(e, t);
+  if(e.status==='delivering') drawRoute(e, route);
   el.classList.add('walking');
   for(const step of route){
-    const p = ptOf(step.node);
-    const cx = parseFloat(el.style.left)||0, cy = parseFloat(el.style.top)||0;
-    const dist = Math.hypot(p.x-cx, p.y-cy);
+    const p = ptOf(step.node), c = curPos(el);
+    const dist = Math.hypot(p.x-c.x, p.y-c.y);
     const dur = Math.max(.15, dist / (120*S.speed));
-    if(Math.abs(p.x-cx) > 2) el.classList.toggle('flip', p.x < cx);
-    el.style.setProperty('--d', dur+'s');
+    if(Math.abs(p.x-c.x) > 2) el.classList.toggle('flip', p.x < c.x);
     el.style.transitionDuration = `${dur}s, ${dur}s, .8s`;
-    el.style.zIndex = 2000;
     place(el, p); el.style.zIndex = 2000;
     await sleep(dur*1000);
     if(token !== el._walk) return;
     e.loc = step.room;
   }
   el.classList.remove('walking','flip');
-  el.style.zIndex = Math.round(parseFloat(el.style.top));
+  el.style.zIndex = Math.round(curPos(el).y);
   e.arrived = true;
   afterMove(e);
+  onArrive(e);
+}
+
+/* ---------- route lines (task handoff path) ---------- */
+const routeEls = new Map();
+function drawRoute(e, route){
+  clearRoute(e.id, true);
+  const el = els.get(e.id), p = proj(e.carry); if(!el || !p) return;
+  const pts = [curPos(el), ...route.map(s => ptOf(s.node))].map(q => ({x:q.x, y:q.y-14}));
+  const NS = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(NS,'g');
+  const path = document.createElementNS(NS,'path');
+  path.setAttribute('d', 'M'+pts.map(q => `${q.x.toFixed(1)} ${q.y.toFixed(1)}`).join(' L'));
+  path.setAttribute('stroke', p.color);
+  const end = pts[pts.length-1], dot = document.createElementNS(NS,'circle');
+  dot.setAttribute('cx', end.x); dot.setAttribute('cy', end.y+10); dot.setAttribute('r', 7);
+  dot.setAttribute('fill', p.color);
+  g.append(path, dot); routesSvg.appendChild(g);
+  routeEls.set(e.id, g);
+  const room = $(`[data-room="${e.deliverTo}"]`);
+  room.style.setProperty('--rc', p.color); room.classList.add('recv');
+}
+function clearRoute(id, instant){
+  const g = routeEls.get(id); if(!g) return;
+  routeEls.delete(id);
+  const e = emp(id);
+  if(e && e.deliverTo) $(`[data-room="${e.deliverTo}"]`)?.classList.remove('recv');
+  if(instant) return g.remove();
+  $$('path,circle', g).forEach(n => n.classList.add('fade'));
+  g.style.transition = 'opacity .6s'; g.style.opacity = 0;
+  setTimeout(() => g.remove(), 700);
+}
+
+/* ---------- flying folder: tray → desk ---------- */
+function flyFolder(fromNode, toNode, color, done){
+  const a = ptOf(fromNode), b = ptOf(toNode);
+  const f = document.createElement('div');
+  f.className = 'flyer'; f.style.setProperty('--pc', color);
+  peopleLayer.appendChild(f);
+  const mid = {x:(a.x+b.x)/2, y:Math.min(a.y,b.y) - 70};
+  const anim = f.animate([
+    {transform:`translate(${a.x}px,${a.y}px) rotate(0) scale(.6)`},
+    {transform:`translate(${mid.x}px,${mid.y}px) rotate(-200deg) scale(1.3)`, offset:.5},
+    {transform:`translate(${b.x}px,${b.y}px) rotate(-360deg) scale(1)`},
+  ], {duration:1000/Math.sqrt(S.speed), easing:'ease-in-out'});
+  anim.onfinish = () => { f.remove(); done(); };
+}
+
+/* ================= Workflow ================= */
+function onArrive(e){
+  if(e.status==='delivering' && e.loc===e.deliverTo) return drop(e);
+  if(e.status==='idle' && e.loc===e.dept && !e.taskId) tryAssign(e);
+}
+function tryAssign(e){
+  if(e.status!=='idle' || e.taskId || e.carry || !e.arrived || e.loc!==e.dept || e.incoming) return false;
+  const p = queueOf(e.dept)[0]; if(!p) return false;
+  p.assignee = e.id; e.taskId = p.id; e.incoming = true;
+  paintTrays(); renderBoard();
+  const finish = () => {
+    e.incoming = false;
+    if(e.taskId!==p.id) return;
+    log(`▶️ ${e.name} ${V(e,'استلم','استلمت')} «${p.title}» ${V(e,'وبدأ','وبدأت')} العمل — أُضيئت اللمبة`, p.color);
+    setStatus(e, 'working', {quiet:true});
+  };
+  const desk = deskEl(e);
+  if(desk) flyFolder(trayOf(e.dept), $('.dfolder', desk), p.color, finish); else finish();
+  return true;
+}
+function assignDept(dept){
+  S.emps.filter(e => e.dept===dept).forEach(e => tryAssign(e));
+}
+function complete(e){
+  const p = proj(e.taskId); if(!p) { e.taskId = null; return; }
+  e.done++; e.taskId = null; p.assignee = null; p.progress = 100;
+  const next = nextDept(p);
+  floatText(e, p.kind==='ticket' ? '🛠️ تم الإصلاح' : '✅ أنجزت المرحلة');
+  if(!next){ // final stage: publish
+    S.projects = S.projects.filter(x => x!==p);
+    S.published++; S.pubList.unshift(p.title); S.pubList = S.pubList.slice(0,4);
+    log(`🚀 ${e.name} ${V(e,'نشر','نشرت')} «${p.title}» على القناة — انطفأت اللمبة`, '#16a34a');
+    celebrate(e);
+    setStatus(e, 'idle', {quiet:true});
+    return;
+  }
+  p.carrier = e.id; e.carry = p.id; e.deliverTo = next; p.moved = true;
+  log(`📦 ${e.name} ${V(e,'أنهى','أنهت')} «${p.title}» ${V(e,'ويسلّمها','وتسلّمها')} من ${deptName(e.dept)} ← ${deptName(next)}`, p.color);
+  setStatus(e, 'delivering', {quiet:true});
+}
+function drop(e){
+  const p = proj(e.carry);
+  clearRoute(e.id);
+  const to = e.deliverTo;
+  e.carry = null; e.deliverTo = null;
+  if(p){
+    p.carrier = null;
+    const tray = trayOf(to); tray.classList.remove('bump'); void tray.offsetWidth; tray.classList.add('bump');
+    if(p.kind==='ticket'){
+      S.projects = S.projects.filter(x => x!==p);
+      log(`🛠️ ${e.name} ${V(e,'أعاد','أعادت')} «${p.title}» إلى ${deptName(to)} بعد إصلاحه`, '#3b82f6');
+    }else{
+      p.dept = to; p.progress = 0; p.q = S.q++;
+      log(`📥 «${p.title}» وصل إلى وارد ${deptName(to)}`, p.color);
+    }
+  }
+  setStatus(e, 'idle', {quiet:true});
+  paintAll();
+  setTimeout(() => assignDept(to), 250);
+}
+function celebrate(e){
+  const el = els.get(e.id); if(!el) return;
+  const c = curPos(el);
+  for(let i=0;i<18;i++){
+    const k = document.createElement('div');
+    k.className = 'confetti'; k.style.background = rand(PCOLORS);
+    peopleLayer.appendChild(k);
+    const dx = (Math.random()-.5)*160, dy = -40 - Math.random()*90;
+    k.animate([{transform:`translate(${c.x}px,${c.y-60}px)`},{transform:`translate(${c.x+dx}px,${c.y-60+dy}px) rotate(${Math.random()*720}deg)`,opacity:1,offset:.6},{transform:`translate(${c.x+dx*1.2}px,${c.y+20}px) rotate(900deg)`,opacity:0}],{duration:1600,easing:'ease-out'}).onfinish = () => k.remove();
+  }
+  const w = $('#pubwall'); w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash');
+}
+function newProject(title){
+  const p = {id:newId('p'), title, color:PCOLORS[(S.q)%PCOLORS.length], dept:'admin', assignee:null, carrier:null, progress:0, q:S.q++, moved:true};
+  S.projects.push(p);
+  log(`💡 مشروع جديد «${title}» في وارد الإدارة`, p.color);
+  const tray = trayOf('admin'); tray.classList.remove('bump'); void tray.offsetWidth; tray.classList.add('bump');
+  assignDept('admin'); paintAll(); save();
+}
+function newTicket(){
+  const from = rand(PIPE.filter(d => d!=='admin'));
+  const p = {id:newId('t'), kind:'ticket', from, title:rand(TICKETS), color:'#64748b', dept:'tech', assignee:null, carrier:null, progress:0, q:S.q++};
+  S.projects.push(p);
+  log(`🧾 بلاغ تقني من ${deptName(from)}: «${p.title}»`, '#64748b');
+  assignDept('tech');
 }
 
 /* ---------- visuals ---------- */
@@ -587,52 +812,79 @@ function paintPerson(e){
   el.classList.remove(...Object.keys(STATUS).map(k=>'s-'+k));
   el.classList.add('s-'+e.status);
   el.style.setProperty('--sc', st.color);
-  $('.bubble', el).textContent = st.icon;
-  el.setAttribute('aria-label', `${e.name} — ${st.label}`);
+  const p = proj(e.carry || e.taskId);
+  el.style.setProperty('--pc', p ? p.color : '#fbbf24');
+  $('.bubble', el).textContent = (e.status==='idle' && e.taskId) ? '⏸️' : st.icon;
+  el.setAttribute('aria-label', `${e.name} — ${st.label}${p ? ' — ' + p.title : ''}`);
   el.classList.toggle('sel', S.selected===e.id);
   const q = S.search.trim();
-  const match = q && (e.name.includes(q) || e.role.includes(q) || e.task.includes(q));
+  const match = q && (e.name.includes(q) || e.role.includes(q) || (p && p.title.includes(q)));
   el.classList.toggle('hl', !!match);
-  el.classList.toggle('dim', (S.filter && e.status!==S.filter) || (q && !match));
+  el.classList.toggle('dim', !!((S.filter && e.status!==S.filter) || (q && !match)));
 }
 function paintDesks(){
-  document.querySelectorAll('.desk').forEach(d => {
+  $$('.desk').forEach(d => {
     const [dept, idx] = d.dataset.desk.split('-');
     const e = S.emps.find(o => o.dept===dept && o.desk===+idx);
-    const atDesk = e && (e.status==='working'||e.status==='focus') && e.arrived && e.loc===dept;
-    d.classList.toggle('lamp-on', !!atDesk);
-    d.classList.toggle('lamp-focus', !!atDesk && e.status==='focus');
-    d.classList.toggle('screen-on', !!atDesk);
+    const p = e && !e.incoming ? proj(e.taskId) : null;
+    const atDesk = e && e.arrived && e.loc===dept;
+    const on = !!(atDesk && e.status==='working' && p);
+    d.classList.toggle('lamp-on', on);
+    d.classList.toggle('screen-on', on);
+    d.classList.toggle('screen-idle', !!(atDesk && e.status==='idle'));
     d.classList.toggle('screen-lock', !!e && (e.status==='meeting'||e.status==='break'));
+    d.classList.toggle('has-task', !!p);
+    if(p){ d.style.setProperty('--pc', p.color); $('.dbar i', d).style.width = Math.min(100,p.progress)+'%'; }
     const np = $('.nameplate', d);
     np.classList.toggle('empty', !e);
-    np.style.setProperty('--sc', e ? STATUS[e.status].color : '#94a3b8');
+    np.style.setProperty('--sc', e ? (on ? '#facc15' : STATUS[e.status].color) : '#94a3b8');
     $('span', np).textContent = e ? e.name : 'مكتب شاغر';
-    $('.mug', d).style.display = e && e.status!=='offline' ? '' : 'none';
   });
+}
+function paintTrays(){
+  for(const d of DEPTS){
+    const tray = trayOf(d.id), q = queueOf(d.id);
+    $('.badge', tray).textContent = q.length || '';
+    $$('.f', tray).forEach(n => n.remove());
+    q.slice(0,4).forEach((p,i) => tray.insertAdjacentHTML('afterbegin', `<span class="f" style="--pc:${p.color};bottom:${8+i*4}px"></span>`));
+  }
 }
 function paintRooms(){
   const present = {};
-  for(const e of S.emps) if(e.status!=='offline' && e.loc) present[e.loc] = (present[e.loc]||0) + (e.arrived?1:0);
-  document.querySelectorAll('.room').forEach(r => {
+  for(const e of S.emps) if(e.status!=='offline' && e.loc && e.arrived) present[e.loc] = (present[e.loc]||0) + 1;
+  $$('.room').forEach(r => {
     const id = r.dataset.room, n = present[id]||0;
     r.classList.toggle('lit', n>0);
     r.classList.toggle('busy', n>0);
     r.classList.toggle('sel', S.selRoom===id);
-    const total = DEPTS.find(d=>d.id===id) ? S.emps.filter(e=>e.dept===id).length : null;
-    $(`[data-cnt="${id}"]`).textContent = total==null ? `${n} حاضر` : `${n}/${total}`;
+    const total = DEPT[id] ? S.emps.filter(e=>e.dept===id).length : null;
+    const lamps = DEPT[id] ? $$('.desk.lamp-on', r).length : 0;
+    $(`[data-cnt="${id}"]`).textContent = total==null ? `${n} حاضر` : `💡 ${lamps}/${total}`;
   });
+  $('#pubCount').textContent = S.published;
 }
 function paintStats(){
   const c = {}; for(const k in STATUS) c[k]=0;
   S.emps.forEach(e => c[e.status]++);
   $('#stats').innerHTML = Object.entries(STATUS).map(([k,s]) =>
     `<button class="chip ${S.filter===k?'on':''}" data-filter="${k}" style="--c:${s.color}" title="تصفية: ${s.label}"><span class="dot"></span>${s.label} <b>${c[k]}</b></button>`).join('');
-  $('#deptBars').innerHTML = DEPTS.map(d => {
-    const list = S.emps.filter(e=>e.dept===d.id), n = list.length||1;
-    const segs = Object.entries(STATUS).map(([k,s]) => `<i style="width:${list.filter(e=>e.status===k).length/n*100}%;background:${s.color}"></i>`).join('');
-    return `<div class="db"><span>${d.icon} ${d.name}</span><div class="seg">${segs}</div><b>${list.length}</b></div>`;
-  }).join('');
+}
+function renderBoard(){
+  const cols = PIPE.map(id => {
+    const d = DEPT[id];
+    const list = S.projects.filter(p => p.kind!=='ticket' && (p.dept===id && !p.carrier || p.carrier && emp(p.carrier)?.deliverTo===id))
+      .sort((a,b) => (b.assignee?1:0)-(a.assignee?1:0) || a.q-b.q);
+    const chips = list.map(p => {
+      const incoming = !!p.carrier, who = emp(p.assignee || p.carrier);
+      const meta = incoming ? `🚚 في الطريق مع ${esc(who?.name||'')}` : p.assignee ? (who?.status==='working' ? `💡 ${esc(who.name)}` : `⏸️ ${esc(who?.name||'')} (متوقف)`) : '⏳ في الوارد';
+      const cls = `pchip${incoming?' incoming':''}${p.moved?' moved':''}`;
+      p.moved = false;
+      return `<button class="${cls}" style="--pc:${p.color}" data-proj="${p.id}"><span class="t">${esc(p.title)}</span><span class="m">${meta}</span>${p.assignee && !incoming ? `<span class="pb"><i style="width:${Math.min(100,p.progress)}%"></i></span>` : ''}</button>`;
+    }).join('');
+    return `<div class="col" style="--c:${d.color}"><div class="col-h"><span class="ic">${d.icon}</span>${d.stage}<b>${list.length}</b></div>${chips || '<div class="empty-col">لا شيء هنا</div>'}</div>`;
+  });
+  cols.push(`<div class="col" style="--c:#16a34a"><div class="col-h"><span class="ic">🚀</span>منشور<b></b></div><div class="pub">${S.published}</div><div class="pub-list">${S.pubList.map(t=>`<span>✔ ${esc(t)}</span>`).join('')}</div></div>`);
+  $('#cols').innerHTML = cols.join('');
 }
 function paintClock(){
   const h = Math.floor(S.clock/60)%24, m = S.clock%60;
@@ -640,80 +892,89 @@ function paintClock(){
   const night = S.theme==='night' || (S.theme==='auto' && (h>=18 || h<7));
   document.body.classList.toggle('night', night);
 }
-function paintAll(){ S.emps.forEach(paintPerson); paintDesks(); paintRooms(); paintStats(); paintClock(); if(S.selected) renderEmp(); }
+function paintAll(){ S.emps.forEach(paintPerson); paintDesks(); paintTrays(); paintRooms(); paintStats(); paintClock(); renderBoard(); if(S.selected) renderEmp(); }
 
 /* ================= State changes ================= */
-const VERB = {working:'عاد إلى مكتبه', focus:'دخل وضع التركيز 🎧', meeting:'توجّه إلى الاجتماع', break:'أخذ استراحة قهوة', offline:'غادر المكتب'};
+const VERB = {working:['عاد إلى مهمته — أُضيئت اللمبة','عادت إلى مهمتها — أُضيئت اللمبة'], idle:['توقف عن العمل (خمول) — انطفأت اللمبة','توقفت عن العمل (خمول) — انطفأت اللمبة'], meeting:['توجّه إلى الاجتماع','توجّهت إلى الاجتماع'], break:['أخذ استراحة قهوة','أخذت استراحة قهوة'], offline:['غادر المكتب','غادرت المكتب']};
 function setStatus(e, st, {manual=false, quiet=false}={}){
   if(e.status===st) return;
   const prev = e.status;
   e.status = st; e.since = S.tick;
-  if(manual) e.hold = S.tick + 12;
+  if(manual) e.hold = S.tick + 10;
   if(st!=='meeting' && st!=='break') e.slot = null;
-  if(!quiet) log(`${e.name} ${prev==='offline' && st!=='offline' ? 'وصل إلى الشركة' : VERB[st]}`, STATUS[st].color);
+  if(!quiet) log(`${e.name} ${prev==='offline' ? V(e,'وصل إلى الشركة','وصلت إلى الشركة') : V(e, ...(VERB[st]||['','']))}`, STATUS[st].color);
   const el = els.get(e.id);
-  if(prev==='offline' && el){ // appear at the entrance
+  if(prev==='offline' && st!=='offline' && el){
     el.style.transitionDuration='0s'; place(el, ptOf($('[data-exit]'))); e.loc='lobby';
     void el.offsetWidth;
   }
   walk(e, true);
-  paintStats(); save();
+  paintStats(); renderBoard(); save();
   if(S.selected===e.id) renderEmp();
 }
+const backToDesk = e => e.taskId ? 'working' : 'idle';
 
 /* ================= Simulation ================= */
-const TRANS = {
-  working:[['focus',3],['meeting',2],['break',3],['working',8]],
-  focus:[['working',6],['break',2],['focus',4]],
-  meeting:[['working',6],['break',1],['meeting',3]],
-  break:[['working',7],['meeting',1],['break',3]],
-  offline:[['working',1]],
-};
-function pick(list){ const t = list.reduce((a,[,w])=>a+w,0); let r = Math.random()*t; for(const [k,w] of list){ if((r-=w)<0) return k; } return list[0][0]; }
 function tick(){
   S.tick++; S.clock += 5;
-  const h = S.clock/60;
-  if(h >= 20){ S.clock = 8*60; S.day++; log(`🌅 بداية يوم عمل جديد (اليوم ${S.day})`, '#f59e0b'); }
+  if(S.clock >= 20*60){ S.clock = 8*60; S.day++; log(`🌅 بداية يوم عمل جديد (اليوم ${S.day})`, '#f59e0b'); }
   const hour = S.clock/60;
-  // progress
+  const workHours = hour>=9 && hour<17;
+
+  // new work arrives
+  const active = S.projects.filter(p => p.kind!=='ticket').length;
+  if(workHours && active < 9 && Math.random() < (active<5 ? .2 : .07)) newProject(rand(IDEAS.filter(t => !S.projects.some(p=>p.title===t))) || rand(IDEAS));
+  if(workHours && S.projects.filter(p=>p.kind==='ticket').length < 2 && Math.random() < .03) newTicket();
+
+  // work progress → lamp stays on while working, off when the stage is done
   for(const e of S.emps){
-    if(!e.arrived) continue;
-    if(e.status==='working'||e.status==='focus'){
-      e.progress += (e.status==='focus'?5:3) * (0.5+Math.random());
-      e.mins = (e.mins||0) + 5;
-      if(e.progress >= 100){
-        e.done++; log(`✅ ${e.name} أنهى «${e.task}»`, '#16a34a');
-        floatText(e, '✅ تمّت المهمة');
-        e.progress = 0; e.task = rand(TASKS[e.dept].filter(t=>t!==e.task));
-      }
+    if(e.status!=='working' || !e.arrived || e.loc!==e.dept) continue;
+    const p = proj(e.taskId); if(!p){ setStatus(e,'idle',{quiet:true}); continue; }
+    p.progress += (3 + Math.random()*5);
+    e.mins = (e.mins||0) + 5;
+    if(p.progress >= 100) complete(e);
+  }
+
+  // behaviour
+  for(const e of S.emps){
+    if(e.status==='delivering' || e.incoming || !e.arrived) continue;
+    if(e.status==='meeting' && e.group) continue;
+    if(e.hold && S.tick < e.hold) continue;
+    const r = Math.random(), age = S.tick - e.since;
+    switch(e.status){
+      case 'offline':
+        if((hour<9 && hour>=8 && r<.3) || (workHours && hour<16 && r<.1)) setStatus(e, backToDesk(e));
+        break;
+      case 'idle':
+        if(hour>=17 && r<.25) { setStatus(e,'offline'); break; }
+        if(!e.taskId) { if(!tryAssign(e) && age>6 && r<.05) setStatus(e,'break'); }
+        else if(age>3 && r<.3) setStatus(e,'working');
+        break;
+      case 'working':
+        if(hour>=17 && r<.04) { setStatus(e,'offline'); break; }
+        if(hour>=12.5 && hour<13.5 && r<.08) { setStatus(e,'break'); break; }
+        if(age>5 && r<.025) setStatus(e,'idle');
+        else if(age>5 && r<.04) setStatus(e,'break');
+        break;
+      case 'break': case 'meeting':
+        if(age>4 && r<.2) setStatus(e, hour>=17.5 ? 'offline' : backToDesk(e));
+        break;
     }
   }
-  // behaviour by time of day
-  for(const e of S.emps){
-    if(e.hold && S.tick < e.hold) continue;
-    if(S.tick - e.since < 4) continue;
-    if(e.status==='meeting' && e.group) continue;
-    let next = null;
-    if(hour >= 17 && e.status!=='offline'){ if(Math.random()<.18) next = 'offline'; }
-    else if(hour < 9){ if(e.status==='offline' && Math.random()<.3) next = 'working'; }
-    else if(e.status==='offline'){ if(hour<17 && Math.random()<.15) next = 'working'; }
-    else if(hour>=12.5 && hour<13.5 && e.status!=='break' && Math.random()<.25) next = 'break';
-    else if(Math.random() < .07) next = pick(TRANS[e.status]);
-    if(next && next!==e.status) setStatus(e, next);
-  }
+
   // group meetings
   const inMeeting = S.emps.filter(e=>e.status==='meeting' && e.group);
   if(inMeeting.length && S.tick >= inMeeting[0].group){
-    inMeeting.forEach(e => { e.group = null; setStatus(e, 'working', {quiet:true}); });
+    inMeeting.forEach(e => { e.group = null; setStatus(e, backToDesk(e), {quiet:true}); });
     log('🤝 انتهى الاجتماع وعاد الجميع لمكاتبهم', '#a855f7');
-  } else if(!inMeeting.length && hour>=9.5 && hour<16.5 && Math.random()<.04) startMeeting();
+  } else if(!inMeeting.length && workHours && hour<16.5 && Math.random()<.025) startMeeting();
   paintAll(); save();
 }
 function startMeeting(){
-  const avail = S.emps.filter(e => e.status!=='offline' && e.status!=='meeting').sort(()=>Math.random()-.5);
+  const avail = S.emps.filter(e => ['working','idle'].includes(e.status) && e.arrived && !e.incoming).sort(()=>Math.random()-.5);
   const n = Math.min(avail.length, 3 + Math.floor(Math.random()*3));
   if(n < 2){ toast('لا يوجد عدد كافٍ من الموظفين المتاحين'); return; }
-  const until = S.tick + 10 + Math.floor(Math.random()*6);
+  const until = S.tick + 8 + Math.floor(Math.random()*6);
   const group = avail.slice(0,n);
   group.forEach(e => { e.group = until; setStatus(e, 'meeting', {quiet:true}); });
   log(`🤝 بدأ اجتماع: ${group.map(e=>e.name).join('، ')}`, '#a855f7');
@@ -726,28 +987,37 @@ function log(text, color='#64748b'){
   const li = document.createElement('li');
   li.innerHTML = `<time>${$('#clock').textContent}</time><span style="color:${color}">●</span><span>${esc(text)}</span>`;
   const ul = $('#log'); ul.prepend(li);
-  while(ul.children.length > 40) ul.lastChild.remove();
+  while(ul.children.length > 50) ul.lastChild.remove();
 }
 function floatText(e, text){
   const el = els.get(e.id); if(!el) return;
   const f = document.createElement('div');
   f.className = 'float'; f.textContent = text;
-  f.style.left = el.style.left; f.style.top = (parseFloat(el.style.top)-72)+'px'; f.style.zIndex = 3000;
-  peopleLayer.appendChild(f); setTimeout(()=>f.remove(), 1800);
+  f.style.left = el.style.left; f.style.top = (parseFloat(el.style.top)-74)+'px'; f.style.zIndex = 3000;
+  peopleLayer.appendChild(f); setTimeout(()=>f.remove(), 2000);
   el.classList.remove('done'); void el.offsetWidth; el.classList.add('done');
 }
 let toastT;
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2200); }
 
 const drawer = $('#drawer');
-function deptName(id){ return (DEPTS.find(d=>d.id===id)||SPECIAL[id]||{}).name || id; }
 function openEmp(id){ S.selected = id; S.selRoom = null; renderEmp(); drawer.classList.add('open'); paintAll(); }
 function renderEmp(){
-  if(document.activeElement && document.activeElement.id==='taskIn') return;
-  const e = S.emps.find(o=>o.id===S.selected); if(!e){ closeDrawer(); return; }
+  const e = emp(S.selected); if(!e){ closeDrawer(); return; }
   const st = STATUS[e.status];
+  const p = proj(e.carry || e.taskId);
   const where = e.arrived ? deptName(e.loc) : 'في الطريق…';
   const mins = e.mins||0;
+  const busy = e.status==='delivering' || e.incoming;
+  const atWork = ['working','idle'].includes(e.status);
+  const lamp = e.status==='working' && e.arrived && e.loc===e.dept && p ? '💡 مضاءة' : '⚫ مطفأة';
+  let taskHTML;
+  if(p){
+    const next = nextDept(p);
+    taskHTML = `<div class="task" style="--pc:${p.color}"><b>${esc(p.title)}</b>
+      <span class="sub">${p.kind==='ticket' ? `🧾 بلاغ من ${deptName(p.from)}` : `المرحلة: ${DEPT[p.dept].stage}`}${next ? ` · التالي: ${deptName(next)}` : ' · المرحلة الأخيرة (النشر)'}</span>
+      ${e.status==='delivering' ? `<span>🚚 في الطريق إلى ${deptName(e.deliverTo)}</span>` : `<div class="row"><div class="bar" style="flex:1"><i style="width:${Math.min(100,p.progress)}%"></i></div><b>${Math.floor(p.progress)}%</b></div>`}</div>`;
+  } else taskHTML = `<div class="sub">لا توجد مهمة حالياً${queueOf(e.dept).length ? ` · في وارد القسم ${queueOf(e.dept).length}` : ' · وارد القسم فارغ'}</div>`;
   drawer.innerHTML = `
     <div class="drawer-head">
       <div class="av"><div class="person hw-${e.hw} s-${e.status}" style="${styleFor(e)}">${personHTML(e)}</div></div>
@@ -755,61 +1025,87 @@ function renderEmp(){
       <button class="x" data-close aria-label="إغلاق">✕</button>
     </div>
     <div class="drawer-body">
-      <div><div class="lbl">الحالة الآن</div>
-        <div class="st-grid">${Object.entries(STATUS).map(([k,s])=>`<button class="st-btn ${k===e.status?'on':''}" style="--c:${s.color}" data-set="${k}">${s.icon} ${s.label}</button>`).join('')}</div></div>
+      <div><span class="st-pill" style="--c:${st.color}">${st.icon} ${e.status==='idle'&&e.taskId ? 'خامل — المهمة متوقفة' : st.label}</span></div>
+      <div><div class="lbl">المهمة الحالية</div>${taskHTML}</div>
+      <div><div class="lbl">التحكم</div><div class="acts">
+        ${e.status==='working' ? `<button class="btn green" data-act="finish" ${busy?'disabled':''}>✅ إنهاء وتسليم</button><button class="btn" data-act="pause">⏸️ إيقاف (خمول)</button>`
+          : e.status==='idle' ? `<button class="btn green" data-act="start" ${busy?'disabled':''}>▶️ ${e.taskId?'استئناف المهمة':'استلام مهمة'}</button><button class="btn" disabled>💤 خامل</button>`
+          : `<button class="btn green" data-act="desk" ${busy?'disabled':''}>🪑 العودة للمكتب</button><button class="btn" disabled>${st.icon} ${st.label}</button>`}
+        <button class="btn" data-act="break" ${busy||e.status==='break'?'disabled':''}>☕ استراحة</button>
+        <button class="btn" data-act="meeting" ${busy||e.status==='meeting'?'disabled':''}>💬 اجتماع</button>
+        <button class="btn" data-act="offline" ${busy||e.status==='offline'?'disabled':''}>🚪 مغادرة</button>
+        <button class="btn danger" data-act="remove" ${busy?'disabled':''}>🗑️ إزالة</button>
+      </div></div>
       <div class="kv">
         <span>الموقع</span><b>${esc(where)}</b>
         <span>المكتب</span><b>${esc(deptName(e.dept))} — مكتب ${e.desk+1}</b>
-        <span>اللمبة</span><b>${(e.status==='working'||e.status==='focus') ? (e.status==='focus'?'🔴 مضاءة (لا تزعج)':'💡 مضاءة') : '⚫ مطفأة'}</b>
+        <span>اللمبة</span><b>${lamp}</b>
         <span>ساعات العمل</span><b>${Math.floor(mins/60)} س ${mins%60} د</b>
-        <span>مهام منجزة</span><b>${e.done}</b>
+        <span>مراحل منجزة</span><b>${e.done}</b>
       </div>
-      <div><div class="lbl">المهمة الحالية</div>
-        <input class="in" id="taskIn" value="${esc(e.task)}" maxlength="60">
-        <div class="row" style="margin-top:8px"><div class="bar" style="flex:1"><i style="width:${Math.min(100,e.progress)}%"></i></div><b>${Math.floor(e.progress)}%</b></div>
-      </div>
-      <button class="btn danger" data-remove>🗑️ إزالة الموظف</button>
     </div>`;
   $('.av .person', drawer).style.cssText += ';left:50%;top:76px';
 }
 function openRoom(id){
   S.selRoom = id; S.selected = null;
-  const isDept = DEPTS.some(d=>d.id===id);
+  const isDept = !!DEPT[id];
   const list = isDept ? S.emps.filter(e=>e.dept===id) : S.emps.filter(e=>e.loc===id && e.status!=='offline');
-  const meta = DEPTS.find(d=>d.id===id) || SPECIAL[id];
+  const meta = DEPT[id] || SPECIAL[id];
+  const q = isDept ? queueOf(id) : [];
   drawer.innerHTML = `
     <div class="drawer-head"><div class="av" style="display:grid;place-items:center;font-size:34px;background:${meta.color}22">${meta.icon}</div>
-      <div><p class="h1">${esc(meta.name)}</p><div class="sub">${isDept ? `${list.length} موظف · ${meta.desks} مكاتب` : `${list.length} حاضر الآن`}</div></div>
+      <div><p class="h1">${esc(meta.name)}</p><div class="sub">${isDept ? `${meta.stage} · ${list.length} موظفين · ${meta.desks} مكاتب` : `${list.length} حاضر الآن`}</div></div>
       <button class="x" data-close aria-label="إغلاق">✕</button></div>
-    <div class="drawer-body"><div class="mlist">
-      ${list.length ? list.map(e=>`<button class="mitem" data-emp="${e.id}" style="--c:${STATUS[e.status].color}"><span class="dot"></span><b>${esc(e.name)}</b> <span class="sub">${esc(e.role)}</span><small>${STATUS[e.status].label}</small></button>`).join('') : '<div class="sub">لا أحد هنا حالياً</div>'}
-    </div></div>`;
+    <div class="drawer-body">
+      <div><div class="lbl">الفريق</div><div class="mlist">
+      ${list.length ? list.map(e=>{ const p = proj(e.taskId||e.carry); return `<button class="mitem" data-emp="${e.id}" style="--c:${STATUS[e.status].color}"><span class="dot"></span><b>${esc(e.name)}</b><span class="sub">${p?esc(p.title):esc(e.role)}</span><small>${STATUS[e.status].icon}</small></button>`; }).join('') : '<div class="sub">لا أحد هنا حالياً</div>'}
+      </div></div>
+      ${isDept ? `<div><div class="lbl">📥 صندوق الوارد (${q.length})</div><div class="mlist">${q.length ? q.map(p=>`<div class="mitem" style="--c:${p.color}"><span class="dot"></span>${esc(p.title)}</div>`).join('') : '<div class="sub">فارغ</div>'}</div></div>` : ''}
+      ${id==='admin' ? '<button class="btn green" data-newproj>💡 إرسال مشروع جديد</button>' : ''}
+    </div>`;
   drawer.classList.add('open'); paintAll();
 }
 function closeDrawer(){ drawer.classList.remove('open'); S.selected = null; S.selRoom = null; paintAll(); }
 
 drawer.addEventListener('click', ev => {
-  const t = ev.target.closest('button'); if(!t) return;
+  const t = ev.target.closest('button'); if(!t || t.disabled) return;
   if(t.dataset.close!==undefined) return closeDrawer();
   if(t.dataset.emp) return openEmp(t.dataset.emp);
-  const e = S.emps.find(o=>o.id===S.selected); if(!e) return;
-  if(t.dataset.set){ e.group = null; setStatus(e, t.dataset.set, {manual:true}); paintAll(); }
-  if(t.dataset.remove!==undefined && confirm(`إزالة ${e.name} من الشركة؟`)){
-    els.get(e.id)?.remove(); els.delete(e.id);
-    S.emps = S.emps.filter(o=>o!==e); log(`👋 ${e.name} غادر الفريق`); closeDrawer(); save();
+  if(t.dataset.newproj!==undefined) return openProj();
+  const e = emp(S.selected); if(!e) return;
+  const a = t.dataset.act; if(!a) return;
+  e.group = null;
+  if(a==='finish'){ const p = proj(e.taskId); if(p && e.arrived && e.loc===e.dept){ p.progress = 100; complete(e); } else toast('يجب الوصول إلى المكتب أولاً'); }
+  else if(a==='pause') setStatus(e,'idle',{manual:true});
+  else if(a==='start'){
+    if(e.taskId) setStatus(e,'working',{manual:true});
+    else if(!tryAssign(e)) toast(e.arrived && e.loc===e.dept ? 'وارد القسم فارغ — أرسل مشروعاً جديداً من الإدارة' : 'انتظر حتى يصل الموظف إلى مكتبه');
   }
-});
-drawer.addEventListener('change', ev => {
-  if(ev.target.id==='taskIn'){ const e = S.emps.find(o=>o.id===S.selected); if(e && ev.target.value.trim()){ e.task = ev.target.value.trim(); e.progress = 0; log(`📝 ${e.name} بدأ مهمة: ${e.task}`); save(); renderEmp(); } }
+  else if(a==='desk') setStatus(e, backToDesk(e), {manual:true});
+  else if(a==='remove'){
+    if(!confirm(`إزالة ${e.name} من الشركة؟`)) return;
+    const p = proj(e.taskId); if(p) p.assignee = null;
+    els.get(e.id)?.remove(); els.delete(e.id);
+    S.emps = S.emps.filter(o=>o!==e); log(`👋 ${e.name} ${V(e,'غادر','غادرت')} الفريق`); closeDrawer(); assignDept(e.dept); save(); return;
+  }
+  else setStatus(e, a, {manual:true});
+  paintAll();
 });
 floor.addEventListener('click', ev => {
   const p = ev.target.closest('[data-open]'); if(p) return openRoom(p.dataset.open);
+  const tr = ev.target.closest('[data-tray]'); if(tr) return openRoom(tr.dataset.tray);
   const d = ev.target.closest('[data-deskclick]');
   if(d){
     const [dept, idx] = d.dataset.deskclick.split('-');
     const e = S.emps.find(o=>o.dept===dept && o.desk===+idx);
-    if(e) openEmp(e.id); else { openAdd(dept); }
+    if(e) openEmp(e.id); else openAdd(dept);
   }
+});
+$('#cols').addEventListener('click', ev => {
+  const c = ev.target.closest('[data-proj]'); if(!c) return;
+  const p = proj(c.dataset.proj); if(!p) return;
+  const who = p.carrier || p.assignee;
+  if(who) openEmp(who); else openRoom(p.dept);
 });
 $('#stats').addEventListener('click', ev => {
   const c = ev.target.closest('[data-filter]'); if(!c) return;
@@ -829,27 +1125,34 @@ $('#meetBtn').onclick = () => {
   startMeeting(); paintAll();
 };
 $('#resetBtn').onclick = () => {
-  if(!confirm('استعادة الموظفين والبيانات الافتراضية؟')) return;
+  if(!confirm('استعادة الموظفين والمشاريع الافتراضية؟')) return;
   try{ localStorage.removeItem(STORE); }catch(e){}
   location.reload();
 };
 document.addEventListener('keydown', ev => { if(ev.key==='Escape' && drawer.classList.contains('open')) closeDrawer(); });
 
-/* add employee */
+/* dialogs */
+const showDlg = d => typeof d.showModal === 'function' ? d.showModal() : d.setAttribute('open','');
+const projDlg = $('#projDlg'), projForm = $('#projForm');
+function openProj(){ projForm.reset(); showDlg(projDlg); }
+$('#projBtn').onclick = openProj;
+projDlg.addEventListener('close', () => {
+  if(projDlg.returnValue !== 'ok') return;
+  const t = new FormData(projForm).get('title').trim(); if(t) { newProject(t); toast('📥 وصل المشروع إلى وارد الإدارة'); }
+});
 const dlg = $('#addDlg'), form = $('#addForm');
 function freeDesk(dept){
-  const d = DEPTS.find(x=>x.id===dept);
   const used = new Set(S.emps.filter(e=>e.dept===dept).map(e=>e.desk));
-  for(let i=0;i<d.desks;i++) if(!used.has(i)) return i;
+  for(let i=0;i<DEPT[dept].desks;i++) if(!used.has(i)) return i;
   return -1;
 }
 function openAdd(dept){
-  const opts = DEPTS.map(d => { const f = freeDesk(d.id); return `<option value="${d.id}" ${f<0?'disabled':''}>${d.icon} ${d.name}${f<0?' (ممتلئ)':''}</option>`; }).join('');
-  $('#deptSel').innerHTML = opts;
-  if(dept && freeDesk(dept)>=0) $('#deptSel').value = dept;
-  else { const first = DEPTS.find(d=>freeDesk(d.id)>=0); if(!first){ toast('كل المكاتب مشغولة 🏢'); return; } $('#deptSel').value = first.id; }
-  form.reset(); if(dept && freeDesk(dept)>=0) $('#deptSel').value = dept;
-  if(typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open','');
+  const first = DEPTS.find(d=>freeDesk(d.id)>=0);
+  if(!first){ toast('كل المكاتب مشغولة 🏢'); return; }
+  form.reset();
+  $('#deptSel').innerHTML = DEPTS.map(d => { const f = freeDesk(d.id); return `<option value="${d.id}" ${f<0?'disabled':''}>${d.icon} ${d.name}${f<0?' (ممتلئ)':''}</option>`; }).join('');
+  $('#deptSel').value = dept && freeDesk(dept)>=0 ? dept : first.id;
+  showDlg(dlg);
 }
 $('#addBtn').onclick = () => openAdd();
 dlg.addEventListener('close', () => {
@@ -857,22 +1160,42 @@ dlg.addEventListener('close', () => {
   const f = new FormData(form);
   const dept = f.get('dept'), desk = freeDesk(dept);
   if(desk < 0) return toast('لا يوجد مكتب شاغر في هذا القسم');
-  const e = {id:'e'+Date.now(), name:f.get('name').trim(), role:f.get('role').trim(), dept, desk,
-    hw:f.get('hw'), shirt:f.get('shirt'), skin:rand(SKINS), status:'offline', task:rand(TASKS[dept]), progress:0, done:0, since:S.tick};
+  const e = {id:newId('e'), name:f.get('name').trim(), role:f.get('role').trim(), dept, desk,
+    hw:f.get('hw'), shirt:f.get('shirt'), skin:rand(SKINS), status:'offline', taskId:null, mins:0, done:0, since:S.tick};
   S.emps.push(e); makePerson(e); walk(e, false);
-  log(`🎉 انضم ${e.name} إلى قسم ${deptName(dept)}`, '#2563eb');
-  setStatus(e, 'working', {manual:true, quiet:true});
-  paintAll(); toast(`مرحباً ${e.name}! في طريقه إلى مكتبه 🚶`);
+  log(`🎉 ${V(e,'انضم','انضمت')} ${e.name} إلى ${deptName(dept)}`, '#2563eb');
+  setStatus(e, 'idle', {quiet:true});
+  paintAll(); toast(`مرحباً ${e.name}! في الطريق إلى المكتب 🚶`);
 });
 
 /* ================= Boot ================= */
 buildFloor();
-S.emps.forEach(e => { e.loc = null; e.slot = null; e.group = null; e.hold = null; e.since = 0; makePerson(e); });
+// normalise any in-flight state from a previous session
+for(const e of S.emps){
+  if(e.status==='delivering'){
+    const p = proj(e.carry);
+    if(p){ p.carrier = null; if(p.kind==='ticket') S.projects = S.projects.filter(x=>x!==p); else { p.dept = e.deliverTo; p.progress = 0; } }
+    e.carry = null; e.deliverTo = null; e.status = 'idle';
+  }
+  if(e.taskId && !proj(e.taskId)) e.taskId = null;
+  if(e.status==='working' && !e.taskId) e.status = 'idle';
+  Object.assign(e, {loc:null, slot:null, group:null, hold:null, since:0, incoming:false});
+}
+for(const p of S.projects){ if(p.assignee && !emp(p.assignee)) p.assignee = null; p.carrier = null; S.q = Math.max(S.q, (p.q||0)+1); }
+S.emps.forEach(makePerson);
 themeLabel(); paintClock();
-function snapAll(){ S.emps.forEach(e => { e.loc = null; walk(e, false); }); }
-requestAnimationFrame(() => { snapAll(); paintAll(); log('🏢 تم فتح لوحة المكاتب — المحاكاة تعمل', '#2563eb'); loop(); });
+function snapAll(){
+  $$('g', routesSvg).forEach(g => g.remove()); routeEls.clear();
+  $$('.room.recv').forEach(r => r.classList.remove('recv'));
+  S.emps.forEach(e => {
+    e.loc = null; walk(e, false);
+    if(e.status==='delivering') drop(e);
+  });
+}
+requestAnimationFrame(() => { snapAll(); paintAll(); log('🏢 بدأ يوم العمل — المحاكاة تعمل', '#2563eb'); loop(); });
 if(document.fonts) document.fonts.ready.then(snapAll);
-let rsT; new ResizeObserver(() => { clearTimeout(rsT); rsT = setTimeout(snapAll, 120); }).observe(floor);
+let rsT, firstRO = true;
+new ResizeObserver(() => { if(firstRO){ firstRO = false; return; } clearTimeout(rsT); rsT = setTimeout(snapAll, 150); }).observe(floor);
 })();
 </script>
 </body>
