@@ -105,13 +105,13 @@ export const ReportLog: React.FC<{x?: number; y?: number}> = ({x = 540, y = 820}
 };
 
 /* ---------- incoming call ---------- */
-export const IncomingCall: React.FC<{x?: number; y?: number; caller?: string; answerAt?: number}> = ({x = 540, y = 1060, caller = 'رقم مجهول', answerAt}) => {
+export const IncomingCall: React.FC<{x?: number; y?: number; caller?: string; answerAt?: number; scale?: number}> = ({x = 540, y = 1060, caller = 'رقم مجهول', answerAt, scale = 1}) => {
   const f = useCurrentFrame();
   const s = usePop(0, 12);
   const answered = answerAt !== undefined && f >= answerAt;
   const shake = answered ? 0 : Math.sin(f * 2.2) * 5 * (Math.floor(f / 8) % 2);
   return (
-    <div style={{position: 'absolute', left: x, top: y, transform: `translate(-50%,-50%) translateY(${(1 - s) * 600}px) rotate(${-2 + shake * 0.4}deg) translateX(${shake}px)`,
+    <div style={{position: 'absolute', left: x, top: y, transform: `translate(-50%,-50%) translateY(${(1 - s) * 600}px) scale(${scale}) rotate(${-2 + shake * 0.4}deg) translateX(${shake}px)`,
       width: 760, height: 330, background: T.ui, borderRadius: 40, boxShadow: T.shadow, direction: 'rtl', padding: '36px 44px', boxSizing: 'border-box'}}>
       <div style={{fontFamily: T.body, fontWeight: 800, fontSize: 36, color: '#9fb0cf'}}>{answered ? 'جارٍ الاتصال… 00:0' + Math.min(9, Math.floor((f - (answerAt ?? 0)) / 30)) : 'مكالمة واردة'}</div>
       <div style={{fontFamily: T.head, fontWeight: 900, fontSize: 74, color: T.white, marginTop: 6}}>{caller}</div>

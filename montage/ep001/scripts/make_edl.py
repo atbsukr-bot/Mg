@@ -6,7 +6,7 @@ VOICE_END=1779; SCENE_END=1899; END=1950
 # caption chunks: (word indices, display text per word, highlighted position)
 CH=[
  ([0,1,2,3],['في','عندنا','جريمة','قتل'],2),
- ([4,5,6],['موجودة','بحي','الطين'],1),
+ ([4,5,6],['موجودة','بحي','حطين'],2),
  ([7,8,9,10,11],['في','عالم','من','الأمن','والأمان'],3),
  ([12,13,14,15],['يا','ربي','لك','الحمد'],3),
  ([16,17,18,19],['نكتشف','إن','أصغر','التفاصيل'],3),
@@ -21,7 +21,7 @@ CH=[
  ([48,49],['جا','اتصال'],1),
  ([50,51,52],['ألو،','السلام','عليكم'],0),
  ([53,54,55,56],['في','عندنا','جريمة','قتل'],3),
- ([57,58,59],['موجودة','بحي','الطين'],1),
+ ([57,58,59],['موجودة','بحي','حطين'],2),
  ([60,61,62],['ماذا؟','حدّد','الموقع'],2),
  ([63,64,65,66,67],['لا','أعرف…','ما','حدّد','الموقع'],1),
  ([68,69,70],['فاتجه','رجال','الأمن'],1),
@@ -41,12 +41,12 @@ def S(a,b,bg,**k):
     d=dict(from_=a,dur=b-a,bg=bg); d.update(k); d['from']=d.pop('from_'); return d
 el=lambda typ,at,**p: dict(type=typ,at=at,props=p)
 scenes=[
- S(0,141,'head',look='bw',zoomSteps=[dict(**{'from':0},scale=1.12,y=40),dict(**{'from':57},scale=1.0)],elements=[
-   el('headline',0,text='جريمة قتل',variant='giant',y=330,size=190),
-   el('tape',F(4)-0,text='مسرح جريمة • ممنوع الاقتراب',y=1080,rotate=-7)]),
- S(141,300,'head',look='warm',transition='glitch',zoomSteps=[dict(**{'from':0},scale=1.0),dict(**{'from':F(10)-141},scale=1.14,y=40)],elements=[
-   el('headline',F(10)-141,text='الأمن والأمان',variant='paper',y=1120,size=86),
-   el('tag',F(15)-141,text='الحمد لله',x=800,y=960,rotate=-8)]),
+ S(0,141,'head',look='bw',zoomSteps=[dict(**{'from':0},scale=1.08,y=-40),dict(**{'from':57},scale=1.0)],elements=[
+   el('headline',0,text='جريمة قتل',variant='giant',y=1175,size=170),
+   el('tape',F(4)-0,text='مسرح جريمة • ممنوع الاقتراب',y=1460,rotate=-4)]),
+ S(141,300,'head',look='warm',transition='glitch',zoomSteps=[dict(**{'from':0},scale=1.0,y=-40),dict(**{'from':F(10)-141},scale=1.12,y=-40)],elements=[
+   el('headline',F(10)-141,text='الأمن والأمان',variant='paper',y=1185,size=80,exitAt=F(15)-F(10)-5),
+   el('tag',F(15)-141,text='الحمد لله',x=540,y=1190,rotate=-5,size=60)]),
  S(300,465,'paper',transition='glitch',elements=[
    el('magnifier',0,x=540,y=860),
    el('headline',F(18)-300,text='أصغر التفاصيل',variant='ink',y=340),
@@ -61,11 +61,11 @@ scenes=[
  S(714,815,'dark',elements=[
    el('reportlog',F(43)-714,x=540,y=760),
    el('tag',F(47)-714,text='ولا أي شي',x=760,y=1120,rotate=-6,filled=True)]),
- S(815,953,'head',look='warm',transition='glitch',zoomSteps=[dict(**{'from':0},scale=1.0),dict(**{'from':F(50)-815},scale=1.16,y=40)],elements=[
-   el('call',F(49)-815,x=540,y=330,answerAt=F(50)-F(49))]),
- S(953,1092,'head',look='bw',transition='flash',zoomSteps=[dict(**{'from':0},scale=1.18,y=50),dict(**{'from':F(57)-953},scale=1.05)],elements=[
-   el('headline',F(55)-953,text='جريمة قتل',variant='stamp',x=540,y=1150,size=110),
-   el('tape',F(57)-953,text='مسرح جريمة • ممنوع الاقتراب',y=280,rotate=6)]),
+ S(815,953,'head',look='warm',transition='glitch',zoomSteps=[dict(**{'from':0},scale=1.0,y=-60)],elements=[
+   el('call',F(49)-815,x=540,y=1170,scale=0.6,answerAt=F(50)-F(49))]),
+ S(953,1092,'head',look='bw',transition='flash',zoomSteps=[dict(**{'from':0},scale=1.12,y=-60),dict(**{'from':F(57)-953},scale=1.0,y=-40)],elements=[
+   el('headline',F(55)-953,text='جريمة قتل',variant='stamp',x=540,y=1185,size=96),
+   el('tape',F(57)-953,text='مسرح جريمة • ممنوع الاقتراب',y=1460,rotate=4)]),
  S(1092,1213,'paper',transition='glitch',elements=[
    el('map',0,lostAt=F(63)-1092),
    el('tag',F(67)-1092,text='موقع مجهول',x=540,y=1200,rotate=-5,filled=True,size=60)]),
@@ -74,12 +74,12 @@ scenes=[
    el('siren',0,strength=0.6),
    el('tag',F(69)-1213,text='رجال الأمن',x=330,y=330,rotate=-6,size=64),
    el('headline',F(72)-1213,text='إلى الموقع',variant='plain',x=540,y=1240,size=90)]),
- S(1360,1545,'head',look='warm',transition='glitch',zoomSteps=[dict(**{'from':0},scale=1.0),dict(**{'from':F(74)-1360},scale=1.12,y=30),dict(**{'from':F(77)-1360},scale=1.22,y=60)],elements=[
-   el('headline',F(77)-1360,text='لا تتخيل',variant='plain',x=540,y=1130,size=110)]),
- S(1545,1700,'head',look='bw',transition='glitch-bw',zoomSteps=[dict(**{'from':0},scale=1.15,y=40),dict(**{'from':F(84)-1545},scale=1.0)],elements=[
-   el('tag',F(85)-1545,text='ما أقدر أوصفه',x=760,y=1080,rotate=-6,size=56)]),
- S(1700,VOICE_END,'head',look='warm',zoomSteps=[dict(**{'from':0},scale=1.0),dict(**{'from':F(92)-1700},scale=1.15,y=30)],elements=[
-   el('tag',F(92)-1700,text='صورة تقريبية',x=540,y=1100,rotate=-4,filled=True,size=64)]),
+ S(1360,1545,'head',look='warm',transition='glitch',zoomSteps=[dict(**{'from':0},scale=1.0),dict(**{'from':F(74)-1360},scale=1.1,y=-40),dict(**{'from':F(77)-1360},scale=1.18,y=-70)],elements=[
+   el('headline',F(77)-1360,text='لا تتخيل',variant='plain',x=540,y=1195,size=100)]),
+ S(1545,1700,'head',look='bw',transition='glitch-bw',zoomSteps=[dict(**{'from':0},scale=1.12,y=-50),dict(**{'from':F(84)-1545},scale=1.0,y=-40)],elements=[
+   el('tag',F(85)-1545,text='ما أقدر أوصفه',x=540,y=1195,rotate=-5,size=56)]),
+ S(1700,VOICE_END,'head',look='warm',zoomSteps=[dict(**{'from':0},scale=1.0,y=-40),dict(**{'from':F(92)-1700},scale=1.12,y=-60)],elements=[
+   el('tag',F(92)-1700,text='صورة تقريبية',x=540,y=1195,rotate=-4,filled=True,size=60)]),
  S(VOICE_END,SCENE_END,'dark',transition='flash',elements=[el('crimescene',0)]),
  S(SCENE_END,END,'dark',transition='glitch',elements=[el('endcard',0)]),
 ]
