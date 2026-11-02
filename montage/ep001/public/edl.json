@@ -1,0 +1,1292 @@
+{
+ "fps": 30,
+ "durationInFrames": 1950,
+ "aroll": "aroll.mp4",
+ "voiceEnd": 1779,
+ "scenes": [
+  {
+   "dur": 141,
+   "bg": "head",
+   "look": "bw",
+   "transition": "flash",
+   "zoomSteps": [
+    {
+     "from": 0,
+     "scale": 1.12,
+     "y": 40
+    },
+    {
+     "from": 57,
+     "scale": 1.0
+    }
+   ],
+   "elements": [
+    {
+     "type": "headline",
+     "at": 40,
+     "props": {
+      "text": "جريمة قتل",
+      "variant": "giant",
+      "y": 330,
+      "size": 190
+     }
+    },
+    {
+     "type": "tape",
+     "at": 76,
+     "props": {
+      "text": "مسرح جريمة • ممنوع الاقتراب",
+      "y": 1080,
+      "rotate": -7
+     }
+    }
+   ],
+   "from": 0
+  },
+  {
+   "dur": 159,
+   "bg": "head",
+   "look": "warm",
+   "transition": "glitch",
+   "zoomSteps": [
+    {
+     "from": 0,
+     "scale": 1.0
+    },
+    {
+     "from": 56,
+     "scale": 1.14,
+     "y": 40
+    }
+   ],
+   "elements": [
+    {
+     "type": "headline",
+     "at": 56,
+     "props": {
+      "text": "الأمن والأمان",
+      "variant": "paper",
+      "y": 1120,
+      "size": 86
+     }
+    },
+    {
+     "type": "tag",
+     "at": 133,
+     "props": {
+      "text": "الحمد لله",
+      "x": 800,
+      "y": 960,
+      "rotate": -8
+     }
+    }
+   ],
+   "from": 141
+  },
+  {
+   "dur": 165,
+   "bg": "paper",
+   "transition": "glitch",
+   "elements": [
+    {
+     "type": "magnifier",
+     "at": 0,
+     "props": {
+      "x": 540,
+      "y": 860
+     }
+    },
+    {
+     "type": "headline",
+     "at": 31,
+     "props": {
+      "text": "أصغر التفاصيل",
+      "variant": "ink",
+      "y": 340
+     }
+    },
+    {
+     "type": "headline",
+     "at": 100,
+     "props": {
+      "text": "أسرار",
+      "variant": "stamp",
+      "x": 780,
+      "y": 1130,
+      "rotate": -10
+     }
+    }
+   ],
+   "from": 300
+  },
+  {
+   "dur": 91,
+   "bg": "paper",
+   "transition": "glitch",
+   "elements": [
+    {
+     "type": "casefile",
+     "at": 25,
+     "props": {
+      "x": 540,
+      "y": 820,
+      "stampAt": 37
+     }
+    },
+    {
+     "type": "tag",
+     "at": 62,
+     "props": {
+      "text": "اليوم",
+      "x": 820,
+      "y": 1120,
+      "rotate": -8,
+      "size": 60
+     }
+    }
+   ],
+   "from": 465
+  },
+  {
+   "dur": 158,
+   "bg": "paper",
+   "transition": "glitch",
+   "elements": [
+    {
+     "type": "headline",
+     "at": 54,
+     "props": {
+      "text": "يوم من الأيام",
+      "variant": "ink",
+      "y": 360
+     }
+    },
+    {
+     "type": "flatline",
+     "at": 87,
+     "props": {
+      "x": 540,
+      "y": 820,
+      "label": "المركز هادي"
+     }
+    },
+    {
+     "type": "headline",
+     "at": 142,
+     "props": {
+      "text": "هدوء…",
+      "variant": "stamp",
+      "x": 720,
+      "y": 1140
+     }
+    }
+   ],
+   "from": 556
+  },
+  {
+   "dur": 101,
+   "bg": "dark",
+   "elements": [
+    {
+     "type": "reportlog",
+     "at": 46,
+     "props": {
+      "x": 540,
+      "y": 760
+     }
+    },
+    {
+     "type": "tag",
+     "at": 88,
+     "props": {
+      "text": "ولا أي شي",
+      "x": 760,
+      "y": 1120,
+      "rotate": -6,
+      "filled": true
+     }
+    }
+   ],
+   "from": 714
+  },
+  {
+   "dur": 138,
+   "bg": "head",
+   "look": "warm",
+   "transition": "glitch",
+   "zoomSteps": [
+    {
+     "from": 0,
+     "scale": 1.0
+    },
+    {
+     "from": 55,
+     "scale": 1.16,
+     "y": 40
+    }
+   ],
+   "elements": [
+    {
+     "type": "call",
+     "at": 26,
+     "props": {
+      "x": 540,
+      "y": 330,
+      "answerAt": 29
+     }
+    }
+   ],
+   "from": 815
+  },
+  {
+   "dur": 139,
+   "bg": "head",
+   "look": "bw",
+   "transition": "flash",
+   "zoomSteps": [
+    {
+     "from": 0,
+     "scale": 1.18,
+     "y": 50
+    },
+    {
+     "from": 77,
+     "scale": 1.05
+    }
+   ],
+   "elements": [
+    {
+     "type": "headline",
+     "at": 41,
+     "props": {
+      "text": "جريمة قتل",
+      "variant": "stamp",
+      "x": 540,
+      "y": 1150,
+      "size": 110
+     }
+    },
+    {
+     "type": "tape",
+     "at": 77,
+     "props": {
+      "text": "مسرح جريمة • ممنوع الاقتراب",
+      "y": 280,
+      "rotate": 6
+     }
+    }
+   ],
+   "from": 953
+  },
+  {
+   "dur": 121,
+   "bg": "paper",
+   "transition": "glitch",
+   "elements": [
+    {
+     "type": "map",
+     "at": 0,
+     "props": {
+      "lostAt": 67
+     }
+    },
+    {
+     "type": "tag",
+     "at": 95,
+     "props": {
+      "text": "موقع مجهول",
+      "x": 540,
+      "y": 1200,
+      "rotate": -5,
+      "filled": true,
+      "size": 60
+     }
+    }
+   ],
+   "from": 1092
+  },
+  {
+   "dur": 147,
+   "bg": "dark",
+   "transition": "flash",
+   "elements": [
+    {
+     "type": "paths",
+     "at": 0,
+     "props": {}
+    },
+    {
+     "type": "siren",
+     "at": 0,
+     "props": {
+      "strength": 0.6
+     }
+    },
+    {
+     "type": "tag",
+     "at": 24,
+     "props": {
+      "text": "رجال الأمن",
+      "x": 330,
+      "y": 330,
+      "rotate": -6,
+      "size": 64
+     }
+    },
+    {
+     "type": "headline",
+     "at": 119,
+     "props": {
+      "text": "إلى الموقع",
+      "variant": "plain",
+      "x": 540,
+      "y": 1240,
+      "size": 90
+     }
+    }
+   ],
+   "from": 1213
+  },
+  {
+   "dur": 185,
+   "bg": "head",
+   "look": "warm",
+   "transition": "glitch",
+   "zoomSteps": [
+    {
+     "from": 0,
+     "scale": 1.0
+    },
+    {
+     "from": 43,
+     "scale": 1.12,
+     "y": 30
+    },
+    {
+     "from": 135,
+     "scale": 1.22,
+     "y": 60
+    }
+   ],
+   "elements": [
+    {
+     "type": "headline",
+     "at": 135,
+     "props": {
+      "text": "لا تتخيل",
+      "variant": "plain",
+      "x": 540,
+      "y": 1130,
+      "size": 110
+     }
+    }
+   ],
+   "from": 1360
+  },
+  {
+   "dur": 155,
+   "bg": "head",
+   "look": "bw",
+   "transition": "glitch-bw",
+   "zoomSteps": [
+    {
+     "from": 0,
+     "scale": 1.15,
+     "y": 40
+    },
+    {
+     "from": 82,
+     "scale": 1.0
+    }
+   ],
+   "elements": [
+    {
+     "type": "tag",
+     "at": 83,
+     "props": {
+      "text": "ما أقدر أوصفه",
+      "x": 760,
+      "y": 1080,
+      "rotate": -6,
+      "size": 56
+     }
+    }
+   ],
+   "from": 1545
+  },
+  {
+   "dur": 79,
+   "bg": "head",
+   "look": "warm",
+   "zoomSteps": [
+    {
+     "from": 0,
+     "scale": 1.0
+    },
+    {
+     "from": 27,
+     "scale": 1.15,
+     "y": 30
+    }
+   ],
+   "elements": [
+    {
+     "type": "tag",
+     "at": 27,
+     "props": {
+      "text": "صورة تقريبية",
+      "x": 540,
+      "y": 1100,
+      "rotate": -4,
+      "filled": true,
+      "size": 64
+     }
+    }
+   ],
+   "from": 1700
+  },
+  {
+   "dur": 120,
+   "bg": "dark",
+   "transition": "flash",
+   "elements": [
+    {
+     "type": "crimescene",
+     "at": 0,
+     "props": {}
+    }
+   ],
+   "from": 1779
+  },
+  {
+   "dur": 51,
+   "bg": "dark",
+   "transition": "glitch",
+   "elements": [
+    {
+     "type": "endcard",
+     "at": 0,
+     "props": {}
+    }
+   ],
+   "from": 1899
+  }
+ ],
+ "captions": [
+  [
+   {
+    "text": "في",
+    "start": 2,
+    "end": 24
+   },
+   {
+    "text": "عندنا",
+    "start": 24,
+    "end": 40
+   },
+   {
+    "text": "جريمة",
+    "start": 40,
+    "end": 57,
+    "hl": true
+   },
+   {
+    "text": "قتل",
+    "start": 57,
+    "end": 76
+   }
+  ],
+  [
+   {
+    "text": "موجودة",
+    "start": 76,
+    "end": 99
+   },
+   {
+    "text": "بحي",
+    "start": 99,
+    "end": 116,
+    "hl": true
+   },
+   {
+    "text": "الطين",
+    "start": 116,
+    "end": 137
+   }
+  ],
+  [
+   {
+    "text": "في",
+    "start": 141,
+    "end": 170
+   },
+   {
+    "text": "عالم",
+    "start": 170,
+    "end": 187
+   },
+   {
+    "text": "من",
+    "start": 187,
+    "end": 197
+   },
+   {
+    "text": "الأمن",
+    "start": 197,
+    "end": 213,
+    "hl": true
+   },
+   {
+    "text": "والأمان",
+    "start": 213,
+    "end": 249
+   }
+  ],
+  [
+   {
+    "text": "يا",
+    "start": 249,
+    "end": 259
+   },
+   {
+    "text": "ربي",
+    "start": 259,
+    "end": 267
+   },
+   {
+    "text": "لك",
+    "start": 267,
+    "end": 274
+   },
+   {
+    "text": "الحمد",
+    "start": 274,
+    "end": 302,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "نكتشف",
+    "start": 302,
+    "end": 324
+   },
+   {
+    "text": "إن",
+    "start": 324,
+    "end": 331
+   },
+   {
+    "text": "أصغر",
+    "start": 331,
+    "end": 345
+   },
+   {
+    "text": "التفاصيل",
+    "start": 345,
+    "end": 357,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "ممكن",
+    "start": 365,
+    "end": 377
+   },
+   {
+    "text": "تكشف",
+    "start": 377,
+    "end": 390,
+    "hl": true
+   },
+   {
+    "text": "لنا",
+    "start": 390,
+    "end": 400
+   }
+  ],
+  [
+   {
+    "text": "أسرار",
+    "start": 400,
+    "end": 414,
+    "hl": true
+   },
+   {
+    "text": "عميقة",
+    "start": 414,
+    "end": 429
+   },
+   {
+    "text": "جدًا",
+    "start": 429,
+    "end": 464
+   }
+  ],
+  [
+   {
+    "text": "مثل…",
+    "start": 468,
+    "end": 486
+   },
+   {
+    "text": "قصتنا",
+    "start": 490,
+    "end": 511,
+    "hl": true
+   },
+   {
+    "text": "لهذا",
+    "start": 511,
+    "end": 527
+   },
+   {
+    "text": "اليوم",
+    "start": 527,
+    "end": 554
+   }
+  ],
+  [
+   {
+    "text": "يعني",
+    "start": 558,
+    "end": 583
+   },
+   {
+    "text": "جا",
+    "start": 583,
+    "end": 605
+   },
+   {
+    "text": "في",
+    "start": 605,
+    "end": 610
+   },
+   {
+    "text": "يوم",
+    "start": 610,
+    "end": 616,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "من",
+    "start": 616,
+    "end": 623
+   },
+   {
+    "text": "الأيام",
+    "start": 623,
+    "end": 643,
+    "hl": true
+   },
+   {
+    "text": "والدنيا",
+    "start": 643,
+    "end": 664
+   }
+  ],
+  [
+   {
+    "text": "كانت",
+    "start": 664,
+    "end": 678
+   },
+   {
+    "text": "كلها",
+    "start": 678,
+    "end": 698
+   },
+   {
+    "text": "هدوء",
+    "start": 698,
+    "end": 716,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "والمركز",
+    "start": 716,
+    "end": 744
+   },
+   {
+    "text": "ما",
+    "start": 744,
+    "end": 752
+   },
+   {
+    "text": "فيه",
+    "start": 752,
+    "end": 760
+   },
+   {
+    "text": "بلاغات",
+    "start": 760,
+    "end": 782,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "ولا",
+    "start": 782,
+    "end": 787
+   },
+   {
+    "text": "في",
+    "start": 787,
+    "end": 794
+   },
+   {
+    "text": "أي",
+    "start": 794,
+    "end": 802
+   },
+   {
+    "text": "شي",
+    "start": 802,
+    "end": 815,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "جا",
+    "start": 815,
+    "end": 841
+   },
+   {
+    "text": "اتصال",
+    "start": 841,
+    "end": 870,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "ألو،",
+    "start": 870,
+    "end": 897,
+    "hl": true
+   },
+   {
+    "text": "السلام",
+    "start": 897,
+    "end": 914
+   },
+   {
+    "text": "عليكم",
+    "start": 914,
+    "end": 956
+   }
+  ],
+  [
+   {
+    "text": "في",
+    "start": 956,
+    "end": 977
+   },
+   {
+    "text": "عندنا",
+    "start": 977,
+    "end": 994
+   },
+   {
+    "text": "جريمة",
+    "start": 994,
+    "end": 1010
+   },
+   {
+    "text": "قتل",
+    "start": 1010,
+    "end": 1030,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "موجودة",
+    "start": 1030,
+    "end": 1053
+   },
+   {
+    "text": "بحي",
+    "start": 1053,
+    "end": 1070,
+    "hl": true
+   },
+   {
+    "text": "الطين",
+    "start": 1070,
+    "end": 1091
+   }
+  ],
+  [
+   {
+    "text": "ماذا؟",
+    "start": 1095,
+    "end": 1127
+   },
+   {
+    "text": "حدّد",
+    "start": 1127,
+    "end": 1144
+   },
+   {
+    "text": "الموقع",
+    "start": 1144,
+    "end": 1159,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "لا",
+    "start": 1159,
+    "end": 1164
+   },
+   {
+    "text": "أعرف…",
+    "start": 1164,
+    "end": 1166,
+    "hl": true
+   },
+   {
+    "text": "ما",
+    "start": 1166,
+    "end": 1172
+   },
+   {
+    "text": "حدّد",
+    "start": 1172,
+    "end": 1187
+   },
+   {
+    "text": "الموقع",
+    "start": 1187,
+    "end": 1216
+   }
+  ],
+  [
+   {
+    "text": "فاتجه",
+    "start": 1216,
+    "end": 1237
+   },
+   {
+    "text": "رجال",
+    "start": 1237,
+    "end": 1278,
+    "hl": true
+   },
+   {
+    "text": "الأمن",
+    "start": 1278,
+    "end": 1309
+   }
+  ],
+  [
+   {
+    "text": "إلى",
+    "start": 1309,
+    "end": 1332
+   },
+   {
+    "text": "الموقع",
+    "start": 1332,
+    "end": 1364,
+    "hl": true
+   }
+  ],
+  [
+   {
+    "text": "فلقوا",
+    "start": 1364,
+    "end": 1403
+   },
+   {
+    "text": "جريمة",
+    "start": 1403,
+    "end": 1432,
+    "hl": true
+   },
+   {
+    "text": "بشكل",
+    "start": 1432,
+    "end": 1486
+   }
+  ],
+  [
+   {
+    "text": "لا",
+    "start": 1486,
+    "end": 1495
+   },
+   {
+    "text": "تتخيل",
+    "start": 1495,
+    "end": 1511,
+    "hl": true
+   },
+   {
+    "text": "يا",
+    "start": 1511,
+    "end": 1517
+   },
+   {
+    "text": "عزيزي",
+    "start": 1517,
+    "end": 1528
+   },
+   {
+    "text": "المشاهد",
+    "start": 1528,
+    "end": 1544
+   }
+  ],
+  [
+   {
+    "text": "لدرجة",
+    "start": 1549,
+    "end": 1564,
+    "hl": true
+   },
+   {
+    "text": "إنه",
+    "start": 1564,
+    "end": 1581
+   },
+   {
+    "text": "من…",
+    "start": 1581,
+    "end": 1627
+   }
+  ],
+  [
+   {
+    "text": "لا",
+    "start": 1627,
+    "end": 1628
+   },
+   {
+    "text": "أستطيع",
+    "start": 1628,
+    "end": 1634,
+    "hl": true
+   },
+   {
+    "text": "أن",
+    "start": 1634,
+    "end": 1636
+   },
+   {
+    "text": "أصف لكم",
+    "start": 1636,
+    "end": 1668
+   }
+  ],
+  [
+   {
+    "text": "المشهد",
+    "start": 1668,
+    "end": 1690,
+    "hl": true
+   },
+   {
+    "text": "بالضبط",
+    "start": 1690,
+    "end": 1706
+   }
+  ],
+  [
+   {
+    "text": "فأضع",
+    "start": 1706,
+    "end": 1719
+   },
+   {
+    "text": "لكم",
+    "start": 1719,
+    "end": 1727
+   },
+   {
+    "text": "صورة",
+    "start": 1727,
+    "end": 1737,
+    "hl": true
+   },
+   {
+    "text": "تقريبية",
+    "start": 1737,
+    "end": 1756
+   },
+   {
+    "text": "للمشهد",
+    "start": 1756,
+    "end": 1780
+   }
+  ],
+  [
+   {
+    "text": "مسرح",
+    "start": 1783,
+    "end": 1809
+   },
+   {
+    "text": "الجريمة",
+    "start": 1789,
+    "end": 1897,
+    "hl": true
+   }
+  ]
+ ],
+ "sfx": [
+  {
+   "src": "sfx/static.wav",
+   "at": 0,
+   "volume": 0.35
+  },
+  {
+   "src": "sfx/hit.wav",
+   "at": 40,
+   "volume": 0.6
+  },
+  {
+   "src": "sfx/stamp.wav",
+   "at": 76,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/glitch.wav",
+   "at": 141,
+   "volume": 0.3
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 197,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 274,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/glitch.wav",
+   "at": 300,
+   "volume": 0.3
+  },
+  {
+   "src": "sfx/whoosh.wav",
+   "at": 314,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 331,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/stamp.wav",
+   "at": 400,
+   "volume": 0.55
+  },
+  {
+   "src": "sfx/whoosh.wav",
+   "at": 490,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/stamp.wav",
+   "at": 527,
+   "volume": 0.6
+  },
+  {
+   "src": "sfx/glitch.wav",
+   "at": 556,
+   "volume": 0.3
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 610,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/stamp.wav",
+   "at": 698,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/whoosh.wav",
+   "at": 760,
+   "volume": 0.35
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 764,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 766,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 768,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 770,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 772,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 774,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 776,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 778,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 780,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/tick.wav",
+   "at": 782,
+   "volume": 0.25
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 802,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/ring.wav",
+   "at": 841,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/hit.wav",
+   "at": 994,
+   "volume": 0.6
+  },
+  {
+   "src": "sfx/stamp.wav",
+   "at": 996,
+   "volume": 0.5
+  },
+  {
+   "src": "sfx/glitch.wav",
+   "at": 1092,
+   "volume": 0.3
+  },
+  {
+   "src": "sfx/whoosh.wav",
+   "at": 1100,
+   "volume": 0.35
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 1159,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 1187,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/siren.wav",
+   "at": 1213,
+   "volume": 0.28
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 1237,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/glitch.wav",
+   "at": 1360,
+   "volume": 0.3
+  },
+  {
+   "src": "sfx/hit.wav",
+   "at": 1495,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/glitch.wav",
+   "at": 1545,
+   "volume": 0.35
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 1628,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/pop.wav",
+   "at": 1727,
+   "volume": 0.45
+  },
+  {
+   "src": "sfx/shutter.wav",
+   "at": 1779,
+   "volume": 0.6
+  },
+  {
+   "src": "sfx/heartbeat.wav",
+   "at": 1785,
+   "volume": 0.6
+  },
+  {
+   "src": "sfx/stamp.wav",
+   "at": 1813,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/stamp.wav",
+   "at": 1823,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/stamp.wav",
+   "at": 1833,
+   "volume": 0.4
+  },
+  {
+   "src": "sfx/glitch.wav",
+   "at": 1899,
+   "volume": 0.35
+  },
+  {
+   "src": "sfx/hit.wav",
+   "at": 1901,
+   "volume": 0.5
+  }
+ ],
+ "music": {
+  "src": "bed.wav",
+  "volume": 0.07
+ }
+}
