@@ -206,7 +206,7 @@ export const CrimeScene: React.FC = () => {
           <rect x={700} y={250} width={220} height={330} fill="#111827" stroke="#222c40" strokeWidth={8} />
           <ellipse cx={540} cy={1250} rx={620} ry={560} fill="url(#beam)" />
           {/* chalk outline draws on */}
-          <path d={outline} fill="none" stroke="#F3F0E8" strokeWidth={14} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={1800} strokeDashoffset={1800 * (1 - chalk)} opacity={0.92} />
+          <path d={outline} transform="translate(540 1060) scale(1.35) translate(-540 -1240)" fill="none" stroke="#F3F0E8" strokeWidth={11} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={1800} strokeDashoffset={1800 * (1 - chalk)} opacity={0.92} />
           {/* footprints */}
           {[0, 1, 2, 3].map((i) => <ellipse key={i} cx={820 - i * 70} cy={1700 - i * 110} rx={20} ry={36} fill="#2a3346" opacity={ramp(f, 60 + i * 6, 6)} transform={`rotate(-20 ${820 - i * 70} ${1700 - i * 110})`} />)}
         </svg>

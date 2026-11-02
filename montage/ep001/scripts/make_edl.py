@@ -41,8 +41,8 @@ def S(a,b,bg,**k):
     d=dict(from_=a,dur=b-a,bg=bg); d.update(k); d['from']=d.pop('from_'); return d
 el=lambda typ,at,**p: dict(type=typ,at=at,props=p)
 scenes=[
- S(0,141,'head',look='bw',transition='flash',zoomSteps=[dict(**{'from':0},scale=1.12,y=40),dict(**{'from':57},scale=1.0)],elements=[
-   el('headline',F(2)-0,text='جريمة قتل',variant='giant',y=330,size=190),
+ S(0,141,'head',look='bw',zoomSteps=[dict(**{'from':0},scale=1.12,y=40),dict(**{'from':57},scale=1.0)],elements=[
+   el('headline',0,text='جريمة قتل',variant='giant',y=330,size=190),
    el('tape',F(4)-0,text='مسرح جريمة • ممنوع الاقتراب',y=1080,rotate=-7)]),
  S(141,300,'head',look='warm',transition='glitch',zoomSteps=[dict(**{'from':0},scale=1.0),dict(**{'from':F(10)-141},scale=1.14,y=40)],elements=[
    el('headline',F(10)-141,text='الأمن والأمان',variant='paper',y=1120,size=86),

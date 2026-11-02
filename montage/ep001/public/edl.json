@@ -8,7 +8,6 @@
    "dur": 141,
    "bg": "head",
    "look": "bw",
-   "transition": "flash",
    "zoomSteps": [
     {
      "from": 0,
@@ -23,7 +22,7 @@
    "elements": [
     {
      "type": "headline",
-     "at": 40,
+     "at": 0,
      "props": {
       "text": "جريمة قتل",
       "variant": "giant",
