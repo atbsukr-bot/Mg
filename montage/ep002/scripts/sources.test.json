@@ -1,4 +1,26 @@
-{"sync": {"cam1": 0.0}, "cam1_dur": 610, "cam1_file": "cam1.mov", "cam2_file": "cam2.mp4",
- "voice": "c1", "voice_wav": "voice_c1_test.wav", "voice_offset": 0.0,
- "face": {"c1": [0.46, 0.38], "c2": [0.77, 0.38]},
- "grade": {"c1": "eq=brightness=0.02:contrast=1.08:saturation=0.92:gamma=1.05,colorbalance=rs=-0.03:bs=0.05:rm=-0.02:bm=0.03", "c2": "eq=contrast=1.06:saturation=0.85,colorbalance=rs=-0.05:bs=0.06"}}
+{
+ "sync": {
+  "cam1": 0.0
+ },
+ "cam1_dur": 610,
+ "cam1_file": "cam1.mov",
+ "cam2_file": "cam2.mp4",
+ "voice": "c1",
+ "voice_wav": "voice_c1_test.wav",
+ "voice_offset": 0.0,
+ "face": {
+  "c1": [
+   0.46,
+   0.38
+  ],
+  "c2": [
+   0.77,
+   0.38
+  ]
+ },
+ "grade": {
+  "c1": "hqdn3d=3:3:6:6,curves=master='0/0 0.25/0.36 0.5/0.62 0.8/0.88 1/1',eq=contrast=1.04:saturation=1.05,colorbalance=rs=-0.02:bs=0.03:rh=0.02,vignette=angle=PI/6",
+  "c2": "eq=contrast=1.06:saturation=0.85,colorbalance=rs=-0.05:bs=0.06"
+ },
+ "c2_available": false
+}

@@ -5,7 +5,7 @@
  * Each insert is its own composition and is cut into the A-roll by scripts/build.py.
  */
 import React from 'react';
-import {AbsoluteFill, Easing, Img, interpolate, random, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
+import {AbsoluteFill, Easing, Img, OffthreadVideo, interpolate, random, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {loadFont} from '@remotion/fonts';
 
 export const C = {
@@ -114,6 +114,8 @@ export const Clock: React.FC<{label?: string; h?: number; m?: number}> = ({label
             })}
             <line x1={0} y1={0} x2={Math.sin((hh / 12) * 2 * Math.PI) * 220} y2={-Math.cos((hh / 12) * 2 * Math.PI) * 220} stroke={C.ink} strokeWidth={22} strokeLinecap="round" />
             <line x1={0} y1={0} x2={Math.sin((mm / 60) * 2 * Math.PI) * 340} y2={-Math.cos((mm / 60) * 2 * Math.PI) * 340} stroke={C.ink} strokeWidth={12} strokeLinecap="round" />
+            {/* second hand never stops, so the insert never looks frozen */}
+            <line x1={0} y1={60} x2={Math.sin((Math.floor(f / 30) / 60) * 2 * Math.PI) * 380} y2={-Math.cos((Math.floor(f / 30) / 60) * 2 * Math.PI) * 380} stroke={C.red} strokeWidth={5} />
             <circle r={22} fill={C.red} />
           </svg>
         </AbsoluteFill>
@@ -302,5 +304,28 @@ export const EndCard: React.FC = () => {
         <div style={{fontFamily: 'Amiri', fontSize: 62, color: C.amber, marginTop: 24, opacity: ramp(f, 26, 16)}}>القصة درامية من تأليف الفريق — أي تشابه مع الواقع غير مقصود</div>
       </AbsoluteFill>
     </Stage>
+  );
+};
+
+/* ================= 10. big red title over footage (cold-open title, Abu-Al-Sadiq style) ================= */
+export const BigTitle: React.FC<{title: string; sub?: string; bg?: string}> = ({title, sub, bg = 'broll/police_lights.mp4'}) => {
+  const f = useCurrentFrame();
+  const {durationInFrames} = useVideoConfig();
+  const hit = ramp(f, 6, 6);
+  const shake = f > 6 && f < 16 ? (random('s' + f) - 0.5) * 24 : 0;
+  const out = interpolate(f, [durationInFrames - 10, durationInFrames], [1, 0], {extrapolateLeft: 'clamp'});
+  return (
+    <AbsoluteFill style={{background: '#000', opacity: out}}>
+      <AbsoluteFill style={{filter: 'grayscale(.6) contrast(1.2) brightness(.45)', transform: `scale(${1.05 + f / 900})`}}>
+        <OffthreadVideo src={staticFile(bg)} muted style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+      </AbsoluteFill>
+      <AbsoluteFill style={{background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,.85) 100%)'}} />
+      <AbsoluteFill style={{alignItems: 'center', justifyContent: 'center', direction: 'rtl', transform: `translate(${shake}px, ${shake / 2}px)`}}>
+        <div style={{fontFamily: 'Tajawal', fontWeight: 900, fontSize: 300, color: '#C0141B', letterSpacing: -4,
+          textShadow: '0 0 40px rgba(192,20,27,.55), 0 12px 0 rgba(0,0,0,.6)', transform: `scale(${2.2 - 1.2 * hit})`, opacity: hit}}>{title}</div>
+        {sub && <div style={{fontFamily: 'Amiri', fontWeight: 700, fontSize: 90, color: C.bone, marginTop: 10, opacity: ramp(f, 22, 14), letterSpacing: 6}}>{sub}</div>}
+      </AbsoluteFill>
+      <Grain o={0.12} />
+    </AbsoluteFill>
   );
 };

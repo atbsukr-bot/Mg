@@ -56,7 +56,7 @@ def piece(cam, a, b, zoom, look, crop_c):
     """render one camera piece (video only) to an intermediate clip"""
     src, t0 = cam_input(cam, a)
     # cache key in camera-local time, so re-syncing the master clock reuses rendered pieces
-    key = h('p4', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam))
+    key = h('p5', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam))
     out = os.path.join(WORK, f'p_{key}.mp4')
     if os.path.exists(out):
         return out
@@ -64,15 +64,55 @@ def piece(cam, a, b, zoom, look, crop_c):
     vf = []
     if cam == 'c2':
         vf.append('null')  # cam2 is read with -noautorotate (sensor is landscape; the rotate flag is wrong)
+    vf.append(f'fps={FPS}')
     vf.append(f'scale={W}:{H}:flags=lanczos')
     if zoom > 1.001:
         cw, ch = int(W / zoom) // 2 * 2, int(H / zoom) // 2 * 2
         x = int(min(max(cx * W - cw / 2, 0), W - cw)); y = int(min(max(cy * H - ch / 2, 0), H - ch))
         vf.append(f'crop={cw}:{ch}:{x}:{y},scale={W}:{H}:flags=lanczos')
-    vf += [GRADE.get(cam, 'null'), LOOK.get(look, 'null'), f'fps={FPS}', 'format=yuv420p']
+    vf += [GRADE.get(cam, 'null'), LOOK.get(look, 'null'), 'format=yuv420p']
     pre = ['-noautorotate'] if cam == 'c2' else []
-    run(['ffmpeg', '-v', 'error', '-y', *pre, '-ss', f'{t0:.3f}', '-i', src, '-t', f'{b - a:.3f}', '-an',
+    run(['ffmpeg', '-v', 'error', '-y', *pre, '-ss', f'{t0:.3f}', '-i', src, '-map', '0:v:0', '-frames:v', str(round((b - a) * FPS)), '-an',
          '-vf', ','.join(vf), '-c:v', 'libx264', '-preset', 'faster', '-crf', '15', '-video_track_timescale', '15360', out])
+    return out
+
+
+BROLL_LOOK = {
+    # Abu-Al-Sadiq-style archive: teal/amber split, lifted blacks, grain, flicker, old-TV bezel
+    'archive': "eq=contrast=1.08:brightness=0.02:saturation=0.75,colorbalance=rs=-0.06:gs=0.0:bs=0.08:rh=0.10:gh=0.04:bh=-0.08,"
+               "curves=master='0/0.05 0.5/0.5 1/0.95',noise=alls=14:allf=t,eq=brightness='0.015*sin(9*t)':eval=frame",
+    'night': "eq=contrast=1.1:brightness=-0.06:saturation=0.6:gamma=0.85,colorbalance=rs=-0.08:bs=0.12:rm=-0.05:bm=0.08,noise=alls=10:allf=t",
+    'clean': "eq=contrast=1.04:saturation=0.9,noise=alls=6:allf=t",
+}
+
+
+def broll(br, dur):
+    """stock clip -> slow push-in, graded, inside the old-TV bezel (or full frame)"""
+    src = os.path.join(ROOT, 'public', 'broll', br['src'])
+    look = br.get('look', 'archive'); framed = br.get('frame', look == 'archive')
+    z0, z1 = br.get('zoom', (1.0, 1.12))
+    n = round(dur * FPS)
+    key = h('b2', br, n)
+    out = os.path.join(WORK, f'b_{key}.mp4')
+    if os.path.exists(out):
+        return out
+    zexpr = f"{z0}+({z1 - z0})*n/{max(n - 1, 1)}"
+    vf = (f"fps={FPS},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
+          f"{'reverse,' if br.get('rev') else ''}"
+          f"scale=w='trunc({W}*({zexpr})/2)*2':h='trunc({H}*({zexpr})/2)*2':eval=frame:flags=bicubic,crop={W}:{H},"
+          f"{BROLL_LOOK[look]},vignette=angle=PI/5")
+    srcdur = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src], capture_output=True, text=True).stdout)
+    ss = br.get('ss', 0.0)
+    loop = ['-stream_loop', '-1'] if ss + dur > srcdur - 0.1 else []
+    if framed:
+        fx = os.path.join(ROOT, 'public', 'fx', 'tvframe.png')
+        cmd = ['ffmpeg', '-v', 'error', '-y', *loop, '-ss', f'{ss:.3f}', '-i', src, '-i', fx, '-filter_complex',
+               f"[0:v]{vf},scale={W - 300}:{H - 190}[v];color=c=0x060a09:s={W}x{H}:r={FPS}[bg];[bg][v]overlay=150:95:shortest=1[c];[c][1:v]overlay=0:0,format=yuv420p",
+               '-frames:v', str(n), '-an', '-c:v', 'libx264', '-preset', 'faster', '-crf', '15', '-video_track_timescale', '15360', out]
+    else:
+        cmd = ['ffmpeg', '-v', 'error', '-y', *loop, '-ss', f'{ss:.3f}', '-i', src, '-vf', vf + ',format=yuv420p',
+               '-frames:v', str(n), '-an', '-c:v', 'libx264', '-preset', 'faster', '-crf', '15', '-video_track_timescale', '15360', out]
+    run(cmd)
     return out
 
 
@@ -104,7 +144,8 @@ def build(edl_path, out_path, preview=False):
     t = 0.0; tl = []
     alt = 0
     for u in units:
-        d = u['b'] - u['a']
+        d = round((u['b'] - u['a']) * FPS) / FPS
+        u = dict(u, b=u['a'] + d, gap=round(u.get('gap', 0) * FPS) / FPS)
         cam = u.get('cam', 'auto')
         c1_ok = 0 <= u['a'] - SYNC['cam1'] and u['b'] - SYNC['cam1'] <= CAM1_DUR
         if cam == 'auto':
@@ -112,14 +153,27 @@ def build(edl_path, out_path, preview=False):
             alt += 1
         if cam == 'c1' and not c1_ok:
             cam = 'c2'
+        if not cfg.get('c2_available', True):
+            cam = 'c1'
+        # automatic jump-cut punch-in: consecutive face units alternate wide / tight
+        if 'zoom' not in u and not u.get('ins') and not (u.get('broll') and not u['broll'].get('lead')):
+            u = dict(u, zoom=1.0 if alt % 2 == 0 else 1.18)
         tl.append(dict(u, cam=cam, t=t, d=d))
         t += d + u.get('gap', 0)
-    total = t + edl.get('tail', 4.0)
+    total = t + (edl.get('tail', 4.0) if edl.get('end') else 0.0)
 
     # ---------- video pieces ----------
     pieces = []  # (file, dur)
     for i, u in enumerate(tl):
-        if u.get('ins'):
+        if u.get('broll'):
+            # face for `lead` seconds, then the B-roll over the rest of the line (voice continues)
+            lead = u['broll'].get('lead', 0.0)
+            lead = round(lead * FPS) / FPS
+            if lead > 0:
+                pieces.append((piece(u['cam'], u['a'], u['a'] + lead, u.get('zoom', 1.0), u.get('look'), tuple(u.get('c', cfg['face'][u['cam']]))), lead))
+            rest = u['d'] - lead + u.get('gap', 0)
+            pieces.append((broll(u['broll'], rest), rest))
+        elif u.get('ins'):
             lead = u['ins'].get('lead', 0.0)
             if lead > 0:
                 pieces.append((piece(u['cam'], u['a'], u['a'] + lead, u.get('zoom', 1.0), u.get('look'), tuple(u.get('c', cfg['face'][u['cam']]))), lead))
@@ -194,7 +248,7 @@ def build(edl_path, out_path, preview=False):
         f"[vo][md][sx]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89[a];"
         f"[4:v]scale=110:110[lg];"
         f"[0:v]ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
-        f"[sv][lg]overlay=x=60*{W}/1920:y=50*{H}/1080:enable='between(t,3,{total - edl.get('tail', 4.0):.2f})':format=auto,format=yuv420p[v]"
+        f"[sv][lg]overlay=x=60*{W}/1920:y=50*{H}/1080:enable='between(t,3,{total - (edl.get('tail', 4.0) if edl.get('end') else 0):.2f})':format=auto,format=yuv420p[v]"
     )
     fc = fc.replace('scale=110:110', f'scale={int(110 * W / 1920)}:{int(110 * W / 1920)},format=rgba,colorchannelmixer=aa=0.85')
     enc = ['-c:v', 'libx264', '-preset', 'medium' if not preview else 'veryfast', '-crf', '18' if not preview else '24',
