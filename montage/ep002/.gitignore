@@ -1,0 +1,7 @@
+node_modules
+out/
+public/*.mp4
+public/clips/
+work/
+public/music/
+public/sfx/
