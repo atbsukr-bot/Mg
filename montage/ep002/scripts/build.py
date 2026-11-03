@@ -203,6 +203,7 @@ def build(edl_path, out_path, preview=False):
         tl.append(dict(u, cam=cam, t=t, d=d))
         t += d + u['gap']
     total = t + (edl.get('tail', 4.0) if edl.get('end') else 0.0)
+    json.dump([{k: u[k] for k in ('id', 't', 'd', 'segs', 'gap') if k in u} for u in tl], open(os.path.join(WORK, 'timeline.json'), 'w'))
 
     # ---------- video pieces ----------
     pieces = []  # (file, dur)
