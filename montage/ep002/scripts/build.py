@@ -54,11 +54,12 @@ def cam_input(cam, t_master):
 
 def piece(cam, a, b, zoom, look, crop_c):
     """render one camera piece (video only) to an intermediate clip"""
-    key = h('p3', cam, round(a, 3), round(b, 3), zoom, look, crop_c, GRADE.get(cam))
+    src, t0 = cam_input(cam, a)
+    # cache key in camera-local time, so re-syncing the master clock reuses rendered pieces
+    key = h('p4', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam))
     out = os.path.join(WORK, f'p_{key}.mp4')
     if os.path.exists(out):
         return out
-    src, t0 = cam_input(cam, a)
     cx, cy = crop_c
     vf = []
     if cam == 'c2':

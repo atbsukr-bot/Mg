@@ -124,7 +124,7 @@ export const Clock: React.FC<{label?: string; h?: number; m?: number}> = ({label
 };
 
 /* ================= 3. call record: number struck through ================= */
-export const CallRecord: React.FC = () => {
+export const CallRecord: React.FC<{year?: string}> = ({year = '2016'}) => {
   const f = useCurrentFrame();
   const strike = ramp(f, 70, 18), stamp = ramp(f, 100, 8);
   const rows: [string, string][] = [['رقم المتصل', '011 ••• 2140'], ['نوع الخط', 'هاتف أرضي'], ['العنوان المسجّل', 'حي حطين — الرياض'], ['حالة الخط', 'مفصول']];
@@ -145,7 +145,7 @@ export const CallRecord: React.FC = () => {
             ))}
           </div>
           <div style={{position: 'absolute', left: 120, bottom: 90, transform: `rotate(-14deg) scale(${2 - stamp})`, opacity: stamp, border: `10px solid ${C.red}`, color: C.red,
-            fontFamily: 'Tajawal', fontWeight: 900, fontSize: 96, padding: '10px 40px', borderRadius: 12}}>منفصل منذ 2014</div>
+            fontFamily: 'Tajawal', fontWeight: 900, fontSize: 96, padding: '10px 40px', borderRadius: 12}}>منفصل منذ {year}</div>
         </Paper>
       </Push>
     </Stage>
@@ -259,7 +259,7 @@ export const Scene: React.FC<{markers?: number; highlight?: number}> = ({markers
 };
 
 /* ================= 7. year stamp for flashback ================= */
-export const Year: React.FC<{year?: string; sub?: string}> = ({year = '2014', sub = 'قبل اثنعش سنة'}) => {
+export const Year: React.FC<{year?: string; sub?: string}> = ({year = '2016', sub = 'قبل عشر سنين'}) => {
   const f = useCurrentFrame();
   const n = Math.round(interpolate(ramp(f, 0, 40), [0, 1], [2026, Number(year)]));
   return (
