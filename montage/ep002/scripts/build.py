@@ -52,6 +52,9 @@ def cam_input(cam, t_master):
     return os.path.join(SRC, cfg['cam2_file']), t_master
 
 
+piece_cam = {}
+
+
 def piece(cam, a, b, zoom, look, crop_c):
     """render one camera piece (video only) to an intermediate clip"""
     src, t0 = cam_input(cam, a)
@@ -59,6 +62,7 @@ def piece(cam, a, b, zoom, look, crop_c):
     key = h('p5', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam))
     out = os.path.join(WORK, f'p_{key}.mp4')
     if os.path.exists(out):
+        piece_cam[out] = cam
         return out
     cx, cy = crop_c
     vf = []
@@ -72,6 +76,7 @@ def piece(cam, a, b, zoom, look, crop_c):
         vf.append(f'crop={cw}:{ch}:{x}:{y},scale={W}:{H}:flags=lanczos')
     vf += [GRADE.get(cam, 'null'), LOOK.get(look, 'null'), 'format=yuv420p']
     pre = ['-noautorotate'] if cam == 'c2' else []
+    piece_cam[out] = cam
     run(['ffmpeg', '-v', 'error', '-y', *pre, '-ss', f'{t0:.3f}', '-i', src, '-map', '0:v:0', '-frames:v', str(round((b - a) * FPS)), '-an',
          '-vf', ','.join(vf), '-c:v', 'libx264', '-preset', 'faster', '-crf', '15', '-video_track_timescale', '15360', out])
     return out
@@ -184,6 +189,18 @@ def build(edl_path, out_path, preview=False):
     end = edl.get('end')
     if end:
         pieces.append((insert(end, edl.get('tail', 4.0)), edl.get('tail', 4.0)))
+    # whip transitions (El-Dahih / Abu-Al-Sadiq style): wherever the picture source changes
+    # (face <-> B-roll <-> graphic, or cam1 <-> cam2) the cut gets a short horizontal smear + whoosh
+    def kind(path):
+        b = os.path.basename(path)
+        return b[:2]
+    whips = []; tt = 0.0
+    for (p0, d0), (p1, _d1) in zip(pieces, pieces[1:]):
+        tt += d0
+        k0, k1 = kind(p0), kind(p1)
+        cam_change = k0 == k1 == 'p_' and piece_cam.get(p0) != piece_cam.get(p1)
+        if k0 != k1 or cam_change:
+            whips.append(round(tt, 3))
     lst = os.path.join(WORK, 'concat.txt')
     with open(lst, 'w') as f:
         for p, d in pieces:
@@ -249,6 +266,11 @@ def build(edl_path, out_path, preview=False):
             i = int(start * msr); bed[i:i + n] += loop
         cue, start = (nxt or cue), tc
     sfx = np.zeros_like(bed)
+    wsx, _ = wav_read(os.path.join(ROOT, 'public', 'sfx', 'whoosh.wav'))
+    for tw in whips:
+        i = int((tw - 0.35) * msr); j = min(len(sfx), i + len(wsx))
+        if i >= 0:
+            sfx[i:j] += wsx[:j - i] * 0.22
     for u in tl:
         for name, off, vol in u.get('sfx', []):
             s, _ = wav_read(os.path.join(ROOT, 'public', 'sfx', f'{name}.wav'))
@@ -273,7 +295,7 @@ def build(edl_path, out_path, preview=False):
         f"[3:a]volume=0.8[sx];"
         f"[vo][md][sx]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89[a];"
         f"[4:v]scale=110:110[lg];"
-        f"[0:v]ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
+        f"[0:v]{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
         f"[sv][lg]overlay=x=60*{W}/1920:y=50*{H}/1080:enable='between(t,3,{total - (edl.get('tail', 4.0) if edl.get('end') else 0):.2f})':format=auto,format=yuv420p[v]"
     )
     fc = fc.replace('scale=110:110', f'scale={int(110 * W / 1920)}:{int(110 * W / 1920)},format=rgba,colorchannelmixer=aa=0.85')
@@ -282,6 +304,14 @@ def build(edl_path, out_path, preview=False):
     run(['ffmpeg', '-v', 'error', '-y', '-i', vcat, '-i', vpath, '-i', os.path.join(WORK, 'bed.wav'), '-i', os.path.join(WORK, 'sfx.wav'),
          '-loop', '1', '-i', logo, '-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-t', f'{total:.3f}', *enc, out_path])
     print('built', out_path, f'{total / 60:.1f} min', len(tl), 'units')
+
+
+def whip_filter(whips):
+    if not whips:
+        return ''
+    # 0.1 s each side of the cut: strong horizontal blur (motion smear), slightly brighter
+    en = '+'.join(f'between(t,{w - 0.1:.3f},{w + 0.1:.3f})' for w in whips)
+    return f"avgblur=sizeX=70:sizeY=1:enable='{en}',eq=brightness=0.06:enable='{en}',"
 
 
 def ts(x):
