@@ -145,12 +145,52 @@ def wav_read(p):
 def build(edl_path, out_path, preview=False):
     edl = json.load(open(edl_path))
     units = edl['units']
+    # ---------- voice analysis (needed to cut every silence) ----------
+    vx, sr = wav_read(os.path.join(SRC, cfg['voice_wav']))  # master-clock voice track (mono)
+    voff = cfg['voice_offset']
+    hop = int(0.01 * sr)
+    env = np.sqrt(np.convolve(vx ** 2, np.ones(hop) / hop, 'same')[::hop] + 1e-12)   # 10 ms envelope
+    floor = np.percentile(env, 8)
+    thr = floor * 3.5          # ~ +11 dB over the room noise = speech
+
+    def tighten(a, b):
+        """split [a,b] (master s) into speech runs: every pause >= MAXP is removed (owner: no silent looks at camera)"""
+        MAXP, PAD0, PAD1 = 0.2, 0.04, 0.07
+        i0 = max(0, int((a - voff) / 0.01)); i1 = min(len(env), int((b - voff) / 0.01))
+        sp = env[i0:i1] > thr
+        if not sp.any():
+            return [(a, b)]
+        runs = []; k = 0; n = len(sp)
+        while k < n:
+            if sp[k]:
+                j = k
+                while j < n and sp[j]:
+                    j += 1
+                runs.append([k, j]); k = j
+            else:
+                k += 1
+        merged = [runs[0]]
+        for r in runs[1:]:
+            if (r[0] - merged[-1][1]) * 0.01 < MAXP:
+                merged[-1][1] = r[1]
+            else:
+                merged.append(r)
+        out = []
+        for r0, r1 in merged:
+            if (r1 - r0) * 0.01 < 0.06:   # clicks / breaths alone are dropped
+                continue
+            sa = a + r0 * 0.01 - PAD0; sb = a + r1 * 0.01 + PAD1
+            out.append((max(a - 0.05, sa), min(b + 0.1, sb)))
+        return out or [(a, b)]
+
     # ---------- timeline ----------
     t = 0.0; tl = []
     alt = 0
     for u in units:
-        d = round((u['b'] - u['a']) * FPS) / FPS
-        u = dict(u, b=u['a'] + d, gap=round(u.get('gap', 0) * FPS) / FPS)
+        segs = [(u['a'], u['b'])] if (u.get('keep_pauses') or u.get('ins') and not u.get('text')) else tighten(u['a'], u['b'])
+        segs = [(sa, sa + max(1, round((sb - sa) * FPS)) / FPS) for sa, sb in segs]
+        d = sum(sb - sa for sa, sb in segs)
+        u = dict(u, segs=segs, gap=round(min(u.get('gap', 0), u.get('max_gap', 0.25)) * FPS) / FPS)
         cam = u.get('cam', 'auto')
         c1_ok = 0 <= u['a'] - SYNC['cam1'] and u['b'] - SYNC['cam1'] <= CAM1_DUR
         if cam == 'auto':
@@ -160,32 +200,41 @@ def build(edl_path, out_path, preview=False):
             cam = 'c2'
         if not cfg.get('c2_available', True):
             cam = 'c1'
-        # automatic jump-cut punch-in: consecutive face units alternate wide / tight
-        if 'zoom' not in u and not u.get('ins') and not (u.get('broll') and not u['broll'].get('lead')):
-            u = dict(u, zoom=1.0 if alt % 2 == 0 else 1.18)
         tl.append(dict(u, cam=cam, t=t, d=d))
-        t += d + u.get('gap', 0)
+        t += d + u['gap']
     total = t + (edl.get('tail', 4.0) if edl.get('end') else 0.0)
 
     # ---------- video pieces ----------
     pieces = []  # (file, dur)
-    for i, u in enumerate(tl):
-        if u.get('broll'):
-            # face for `lead` seconds, then the B-roll over the rest of the line (voice continues)
-            lead = u['broll'].get('lead', 0.0)
-            lead = round(lead * FPS) / FPS
+    zstate = [0]
+
+    def face(u, o0, o1):
+        """face pieces for output range [o0,o1) of unit u (relative), one per speech run: every jump cut alternates framing"""
+        oc = 0.0
+        for k, (sa, sb) in enumerate(u['segs']):
+            d = sb - sa; s0, s1 = max(o0, oc), min(o1, oc + d)
+            last = k == len(u['segs']) - 1
+            if last and o1 > oc + d:          # the unit's trailing gap holds on the last run
+                s1 = o1
+            if s1 > s0 + 1e-6:
+                base = u.get('zoom')
+                z = base if base is not None else (1.0, 1.16, 1.0, 1.3)[zstate[0] % 4]
+                zstate[0] += 1
+                src_a = sa + (s0 - oc)
+                pieces.append((piece(u['cam'], src_a, src_a + (s1 - s0), z, u.get('look'), tuple(u.get('c', cfg['face'][u['cam']]))), s1 - s0))
+            oc += d
+
+    for u in tl:
+        full = u['d'] + u['gap']
+        over = u.get('broll') or u.get('ins')
+        if over:
+            lead = round(over.get('lead', 0.0) * FPS) / FPS
             if lead > 0:
-                pieces.append((piece(u['cam'], u['a'], u['a'] + lead, u.get('zoom', 1.0), u.get('look'), tuple(u.get('c', cfg['face'][u['cam']]))), lead))
-            rest = u['d'] - lead + u.get('gap', 0)
-            pieces.append((broll(u['broll'], rest), rest))
-        elif u.get('ins'):
-            lead = u['ins'].get('lead', 0.0)
-            if lead > 0:
-                pieces.append((piece(u['cam'], u['a'], u['a'] + lead, u.get('zoom', 1.0), u.get('look'), tuple(u.get('c', cfg['face'][u['cam']]))), lead))
-            pieces.append((insert(u['ins'], u['d'] - lead + u.get('gap', 0)), u['d'] - lead + u.get('gap', 0)))
+                face(u, 0, lead)
+            rest = full - lead
+            pieces.append(((broll(u['broll'], rest) if u.get('broll') else insert(u['ins'], rest)), rest))
         else:
-            dur = u['d'] + u.get('gap', 0)
-            pieces.append((piece(u['cam'], u['a'], u['a'] + dur, u.get('zoom', 1.0), u.get('look'), tuple(u.get('c', cfg['face'][u['cam']]))), dur))
+            face(u, 0, full)
     end = edl.get('end')
     if end:
         pieces.append((insert(end, edl.get('tail', 4.0)), edl.get('tail', 4.0)))
@@ -211,37 +260,22 @@ def build(edl_path, out_path, preview=False):
          '-c:v', 'libx264', '-preset', 'faster', '-crf', '15', '-an', vcat])
 
     # ---------- voice ----------
-    vx, sr = wav_read(os.path.join(SRC, cfg['voice_wav']))  # master-clock voice track (mono)
     voice = np.zeros(int(total * sr) + sr)
     cover = np.zeros_like(voice)
-    hop = int(0.01 * sr)
-    env = np.sqrt(np.convolve(vx ** 2, np.ones(hop) / hop, 'same') + 1e-12)
-
-    def quiet_point(lo, hi):
-        """sample index of the quietest 10 ms inside [lo, hi] (cuts land in breaths, never inside a word)"""
-        lo = max(0, int(lo * sr)); hi = min(len(vx) - 1, int(hi * sr))
-        if hi <= lo:
-            return lo
-        return lo + int(np.argmin(env[lo:hi:hop])) * hop
-
-    for k, u in enumerate(tl):
-        off = cfg['voice_offset']
-        a_src, b_src = u['a'] - off, u['b'] - off
-        # search a little outside the unit for the real silence around the words
-        s0 = quiet_point(a_src - 0.22, a_src + 0.04)
-        s1 = quiet_point(b_src - 0.04, b_src + 0.30)
-        seg = vx[s0:s1].copy()
-        f = min(int(0.04 * sr), len(seg) // 4)
-        if f > 0:
-            ramp_in = np.sin(np.linspace(0, np.pi / 2, f)) ** 2
-            seg[:f] *= ramp_in; seg[-f:] *= ramp_in[::-1]
-        i = int(u['t'] * sr) - (int(a_src * sr) - s0)   # keep the words exactly where the video expects them
-        j0 = max(i, 0); seg = seg[j0 - i:]
-        j1 = min(len(voice), j0 + len(seg))
-        voice[j0:j1] += seg[:j1 - j0]; cover[j0:j1] = 1.0
+    fade = int(0.02 * sr)
+    rin = np.sin(np.linspace(0, np.pi / 2, fade)) ** 2
+    for u in tl:
+        oc = u['t']
+        for sa, sb in u['segs']:
+            seg = vx[max(0, int((sa - voff) * sr)):int((sb - voff) * sr)].copy()
+            if len(seg) > 2 * fade:
+                seg[:fade] *= rin; seg[-fade:] *= rin[::-1]
+            i = int(oc * sr); j = min(len(voice), i + len(seg))
+            voice[i:j] += seg[:j - i]; cover[i:j] = 1.0
+            oc += sb - sa
     # room tone under the gaps so silence never drops to digital zero
-    q = quiet_point(0, len(vx) / sr)
-    tone = vx[max(0, q - sr // 2): q + sr // 2]
+    qi = int(np.argmin(np.convolve(env, np.ones(100) / 100, 'same')[50:-50])) + 50
+    tone = vx[max(0, (qi - 50) * hop):(qi + 50) * hop]
     if len(tone) > sr // 4:
         loop = np.tile(tone, len(voice) // len(tone) + 1)[:len(voice)]
         g = np.convolve(1 - cover, np.ones(int(0.08 * sr)) / int(0.08 * sr), 'same')
@@ -274,7 +308,7 @@ def build(edl_path, out_path, preview=False):
     for u in tl:
         for name, off, vol in u.get('sfx', []):
             s, _ = wav_read(os.path.join(ROOT, 'public', 'sfx', f'{name}.wav'))
-            i = int((u['t'] + off) * msr); j = min(len(sfx), i + len(s)); sfx[i:j] += s[:j - i] * vol
+            i = int(out_time(u, u['a'] + off) * msr); j = min(len(sfx), i + len(s)); sfx[i:j] += s[:j - i] * vol
     for name, path in (('bed', bed), ('sfx', sfx)):
         with wave.open(os.path.join(WORK, f'{name}.wav'), 'wb') as w:
             w.setnchannels(1); w.setsampwidth(2); w.setframerate(msr)
@@ -304,6 +338,18 @@ def build(edl_path, out_path, preview=False):
     run(['ffmpeg', '-v', 'error', '-y', '-i', vcat, '-i', vpath, '-i', os.path.join(WORK, 'bed.wav'), '-i', os.path.join(WORK, 'sfx.wav'),
          '-loop', '1', '-i', logo, '-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-t', f'{total:.3f}', *enc, out_path])
     print('built', out_path, f'{total / 60:.1f} min', len(tl), 'units')
+
+
+def out_time(u, src_t):
+    """map a source (master) time inside unit u to the output timeline after silence removal"""
+    oc = u['t']
+    for sa, sb in u['segs']:
+        if src_t < sa:
+            return oc
+        if src_t <= sb:
+            return oc + (src_t - sa)
+        oc += sb - sa
+    return oc
 
 
 def whip_filter(whips):
