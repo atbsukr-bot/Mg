@@ -21,7 +21,7 @@ def frames(path, t0, t1, rotate_raw=False):
     """yield (t, gray 480p) every STEP seconds via one ffmpeg pipe"""
     w, h = 854, 480
     pre = ['-noautorotate'] if rotate_raw else []
-    p = subprocess.Popen(['ffmpeg', '-v', 'quiet', *pre, '-ss', str(t0), '-i', path, '-t', str(t1 - t0), '-map', '0:v:0',
+    p = subprocess.Popen(['ffmpeg', '-v', 'quiet', *pre, '-skip_frame', 'nokey', '-ss', str(t0), '-i', path, '-t', str(t1 - t0), '-map', '0:v:0',
                           '-vf', f'fps={1 / STEP},scale={w}:{h},format=gray', '-f', 'rawvideo', '-'], stdout=subprocess.PIPE)
     k = 0
     while True:
