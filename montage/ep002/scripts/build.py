@@ -196,13 +196,39 @@ def build(edl_path, out_path, preview=False):
     # ---------- voice ----------
     vx, sr = wav_read(os.path.join(SRC, cfg['voice_wav']))  # master-clock voice track (mono)
     voice = np.zeros(int(total * sr) + sr)
-    fade = int(0.025 * sr)
-    for u in tl:
-        a = int((u['a'] - cfg['voice_offset']) * sr); b = int((u['b'] - cfg['voice_offset']) * sr)
-        seg = vx[max(a, 0):b].copy()
-        if len(seg) > 2 * fade:
-            seg[:fade] *= np.linspace(0, 1, fade); seg[-fade:] *= np.linspace(1, 0, fade)
-        i = int(u['t'] * sr); voice[i:i + len(seg)] += seg
+    cover = np.zeros_like(voice)
+    hop = int(0.01 * sr)
+    env = np.sqrt(np.convolve(vx ** 2, np.ones(hop) / hop, 'same') + 1e-12)
+
+    def quiet_point(lo, hi):
+        """sample index of the quietest 10 ms inside [lo, hi] (cuts land in breaths, never inside a word)"""
+        lo = max(0, int(lo * sr)); hi = min(len(vx) - 1, int(hi * sr))
+        if hi <= lo:
+            return lo
+        return lo + int(np.argmin(env[lo:hi:hop])) * hop
+
+    for k, u in enumerate(tl):
+        off = cfg['voice_offset']
+        a_src, b_src = u['a'] - off, u['b'] - off
+        # search a little outside the unit for the real silence around the words
+        s0 = quiet_point(a_src - 0.22, a_src + 0.04)
+        s1 = quiet_point(b_src - 0.04, b_src + 0.30)
+        seg = vx[s0:s1].copy()
+        f = min(int(0.04 * sr), len(seg) // 4)
+        if f > 0:
+            ramp_in = np.sin(np.linspace(0, np.pi / 2, f)) ** 2
+            seg[:f] *= ramp_in; seg[-f:] *= ramp_in[::-1]
+        i = int(u['t'] * sr) - (int(a_src * sr) - s0)   # keep the words exactly where the video expects them
+        j0 = max(i, 0); seg = seg[j0 - i:]
+        j1 = min(len(voice), j0 + len(seg))
+        voice[j0:j1] += seg[:j1 - j0]; cover[j0:j1] = 1.0
+    # room tone under the gaps so silence never drops to digital zero
+    q = quiet_point(0, len(vx) / sr)
+    tone = vx[max(0, q - sr // 2): q + sr // 2]
+    if len(tone) > sr // 4:
+        loop = np.tile(tone, len(voice) // len(tone) + 1)[:len(voice)]
+        g = np.convolve(1 - cover, np.ones(int(0.08 * sr)) / int(0.08 * sr), 'same')
+        voice += loop * g * 0.9
     vpath = os.path.join(WORK, 'voice.wav')
     with wave.open(vpath, 'wb') as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr)
