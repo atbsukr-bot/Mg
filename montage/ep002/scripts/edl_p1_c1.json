@@ -139,9 +139,9 @@
    "b": 218.35,
    "text": "في ليلة من ليالي الشتاء، والدنيا هدوء، ولا بلاغ ولا أي شي",
    "broll": {
-    "src": "clock_wall.mp4",
-    "ss": 2,
-    "look": "night",
+    "src": "clock_close.mp4",
+    "ss": 12,
+    "look": "archive",
     "lead": 0.0
    }
   },
@@ -254,8 +254,8 @@
    "gap": 1.0,
    "music": "none",
    "broll": {
-    "src": "dust.mp4",
-    "ss": 10,
+    "src": "abandoned_window.mp4",
+    "ss": 4,
     "look": "night",
     "lead": 0.0,
     "frame": false

@@ -81,7 +81,7 @@ BROLL_LOOK = {
     # Abu-Al-Sadiq-style archive: teal/amber split, lifted blacks, grain, flicker, old-TV bezel
     'archive': "eq=contrast=1.08:brightness=0.02:saturation=0.75,colorbalance=rs=-0.06:gs=0.0:bs=0.08:rh=0.10:gh=0.04:bh=-0.08,"
                "curves=master='0/0.05 0.5/0.5 1/0.95',noise=alls=14:allf=t,eq=brightness='0.015*sin(9*t)':eval=frame",
-    'night': "eq=contrast=1.1:brightness=-0.06:saturation=0.6:gamma=0.85,colorbalance=rs=-0.08:bs=0.12:rm=-0.05:bm=0.08,noise=alls=10:allf=t",
+    'night': "eq=contrast=1.08:brightness=0.02:saturation=0.65:gamma=1.1,colorbalance=rs=-0.08:bs=0.12:rm=-0.05:bm=0.08,noise=alls=10:allf=t",
     'clean': "eq=contrast=1.04:saturation=0.9,noise=alls=6:allf=t",
 }
 
@@ -311,6 +311,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         txt = (u.get('text') or '').strip()
         if not txt or u.get('ins') and not u.get('cap_on_insert'):
             continue
+        for ch in ('…', '...', '.', ':', '؟', '?', '!'):
+            txt = txt.replace(ch, ' ')
+        txt = txt.replace('،', ' ').replace(',', ' ')
         words = txt.split()
         chunks = [words[i:i + 5] for i in range(0, len(words), 5)]
         wts = [sum(len(w) for w in c) + 2 for c in chunks]
@@ -318,8 +321,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for c, wt in zip(chunks, wts):
             d = (u['d'] - 0.1) * wt / tot
             s = ' '.join(c)
-            for k in u.get('key', []):  # highlight key words in amber
-                s = s.replace(k, '{\\c&H0041A4D9&}' + k + '{\\c&H00D6E2E8&}')
+            # libass reorders RTL runs split by inline colour tags, so a key line is coloured as a whole
+            if any(k in s for k in u.get('key', [])):
+                s = '{\\c&H0041A4D9&}' + s
             lines.append(f'Dialogue: 0,{ts(t0)},{ts(t0 + d)},Cap,,0,0,0,,{s}')
             t0 += d
     open(path, 'w').write(hdr + '\n'.join(lines) + '\n')
