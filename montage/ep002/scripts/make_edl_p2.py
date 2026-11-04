@@ -115,7 +115,7 @@ units = [
       sfx=[['ring', 7.2, 0.6]], zoom=1.3),
     U('r4', 1206.52, 1214.66, 'عمّ الهدوء في المكان… التلفون ما فيه سلك! وتوتروا كل العسكر اللي كانوا موجودين',
       ins=dict(id='Phone', props=dict(caption='تلفون… بدون سلك', ring=True), lead=0.0), cap_on_insert=True, music='tension'),
-    U('r5', 1217.06, 1232.26, 'يا جماعة، أنا لما سمعت هالقصة أول مرة، هنا بالذات وقف شعر جسمي. ما أقدر أقول شعر راسي لأني أصلع… وقف شعر جسمي',
+    U('r5', 1217.06, 1228.24, 'يا جماعة، أنا لما سمعت هالقصة أول مرة، هنا بالذات وقف شعر جسمي. ما أقدر أقول شعر راسي لأني أصلع',
       zoom=1.2),
     U('r6', 1234.22, 1236.16, 'تلفون مفصول', key=['مفصول'], zoom=1.35),
     U('r7', 1248.24, 1251.42, 'كيف تلفون مفصول، بدون سلك… يرنّ؟', key=['يرنّ'], gap=0.5, max_gap=0.5),
@@ -133,7 +133,7 @@ units = [
       broll=dict(src='tea.mp4', ss=2, look='night', lead=3.0, frame=False)),
     U('r16', 1350.70, 1352.70, 'قبل لا يفتحون الباب الرابع'),
     U('r17', 1352.70, 1364.98, 'فيصل حس إن الوضع مريب: كيف الاتصال يجي من المركز، والأغراض هذي محطوطة، والسماعة كانت حارة؟ يعني أكيد فيه شخص موجود هنا في البيت'),
-    U('r18', 1364.98, 1375.96, 'فطلب من العسكر يفتشون غرف النوم والبيت وكل شي. فتشوا البيت من الألف للياء',
+    U('r18', 1364.98, 1372.70, 'فطلب من العسكر يفتشون غرف النوم والبيت وكل شي. فتشوا البيت من الألف للياء',
       broll=dict(src='flashlight_man.mp4', ss=0, look='night', lead=1.0, frame=False)),
     U('r19', 1377.08, 1395.02, 'ولقوا شي واحد غريب، لما دخلوا غرفة البنت الصغيرة: في أحد الدواليب، على الرف، كان فيه طباشير أبيض… نفس اللي انرسم فيه مكان الجثة',
       key=['طباشير أبيض'], broll=dict(src='flashlight2.mp4', ss=0, look='night', lead=6.0, frame=False)),
@@ -243,7 +243,8 @@ units = [
     U('n11', 2273.72, 2278.92, 'ما فيه رنّة… ما فيه اتصال… ما فيه أي شي، ولا أي صوت', key=['ما فيه رنّة']),
     U('n12', 2280.18, 2283.78, 'التلفون ما رنّ، والخط القديم ما تحرك'),
     U('n13', 2283.78, 2292.26, 'وأبو نواف قدام البيت قال إن الدنيا كانت هادية… أهدى من أي ليلة شافها', music='tension'),
-    U('n14', 2292.26, 2303.94, 'بس في الصباح، لما رجع فريق الأدلة للبيت، عشان ينقلون الصندوق اللي لقوا فيه الملف',
+    U('n14', 2292.26, 2297.42, 'بس في الصباح، لما رجع فريق الأدلة للبيت'),
+    U('n14b', 2298.42, 2303.94, 'ينقلون الصندوق اللي لقوا فيه الملف',
       broll=dict(src='walk_room.mp4', ss=3, look='clean', lead=2.0, frame=False)),
     U('n15', 2304.74, 2308.26, 'لقوا شي واحد تغيّر في البيت'),
     U('n16', 2308.26, 2309.54, 'السماعة', key=['السماعة'], zoom=1.45),
@@ -270,7 +271,7 @@ units = [
       zoom=1.3, sfx=[['ring', 10.2, 0.45]]),
     U('z12', 2446.40, 2460.30, 'وعلى هذا يا عزيزي المشاهد… أنا ما عندي جواب، وأبي أسمع منك: وش التفسير اللي تتوقعه؟ اكتب لي في التعليقات. وإذا عندك قصة غريبة، أو شي صار معك'),
     U('z13', 2460.30, 2469.54, 'اكتبها لي، يمكن تكون حلقتنا الجاية. ولا تنسى تشترك بالقناة وتفعّل جرس التنبيهات، لأن القصة الجاية إن شاء الله بتكون أغرب'),
-    U('z14', 2487.62, 2493.40, 'فإن شاء الله كل خميس بيكون عندنا حلقة وقصة جديدة، فلا تنسى تشترك'),
+    U('z14', 2487.62, 2491.96, 'فإن شاء الله كل خميس بيكون عندنا حلقة وقصة جديدة'),
     U('z15', 2506.56, 2514.50, 'وتذكّر: هالقصة درامية من تأليفنا، وأي تشابه مع أحداث أو أسماء حقيقية… غير مقصود'),
     U('z16', 2514.50, 2519.84, 'وأشوفكم على خير… وانتبهوا للتلفون إذا رنّ الساعة ثنتين وسبعتعش الفجر', key=['ثنتين وسبعتعش'], zoom=1.3,
       sfx=[['ring', 5.6, 0.4]]),
@@ -289,9 +290,40 @@ COVER = [
     [2181, ['clock_tick.mp4', 'phone_dial.mp4', 'police_lights.mp4', 'clock_wall.mp4', 'old_house.mp4', 'phone_call.mp4']],
     [2342, ['old_house.mp4', 'clock_close.mp4', 'abandoned_window.mp4', 'phone_dial.mp4', 'riyadh_highway.mp4', 'dust.mp4']],
 ]
-full = dict(clock='master', note='ep002 version A: part 1 + part 2 (master clock).', end=dict(id='EndCard', props={}), tail=6.0, cover=COVER,
-            units=p1['units'] + units)
+# ---------- owner's review of preview A (4 Nov): ----------
+# no part/chapter cards; nothing repeated (each B-roll clip and each graphic design at most once); no irrelevant people
+# (door_walk = shirtless man, walk_room = maid); apology banner where cam1 stopped; no look-away covers (cam2 continues)
+BANNED = {'door_walk.mp4', 'walk_room.mp4'}
+DROP_INS = {'p2_h10', 'p2_e10', 'p2_e1', 'p2_t7'}      # repeats of the Scene / Phone / Clock graphics
+APOLOGY = 'الكاميرا الأساسية طفت… أعتذر منكم، وبنكمل القصة من الكاميرا الثانوية'
+
+
+def review(units):
+    used, out = set(), []
+    for u in units:
+        u = dict(u)
+        if u.get('ins', {}).get('id') == 'Chapter':
+            continue
+        if u['id'] in DROP_INS:
+            u.pop('ins', None); u.pop('cap_on_insert', None)
+        br = u.get('broll')
+        if br and (br['src'] in BANNED or br['src'] in used):
+            u.pop('broll')
+        elif br:
+            used.add(br['src'])
+        if u['id'] == 'p2_m4' and not u.get('broll') and 'riyadh_highway.mp4' not in used:
+            u['broll'] = dict(src='riyadh_highway.mp4', ss=2, look='night', lead=5.0, frame=False); used.add('riyadh_highway.mp4')
+        if u['id'] == 'p2_e6':
+            u.pop('broll', None)
+            u['banner'] = APOLOGY
+        out.append(u)
+    return out, used
+
+
+units_all, used = review(p1['units'] + units)
+full = dict(clock='master', note='ep002 version A2: part 1 + part 2 (master clock), owner review applied.', end=dict(id='EndCard', props={}), tail=6.0,
+            units=units_all)
 json.dump(full, open(os.path.join(ROOT, 'scripts', 'edl_A.json'), 'w'), ensure_ascii=False, indent=1)
 ids = [u['id'] for u in full['units']]
 assert len(ids) == len(set(ids)), [i for i in ids if ids.count(i) > 1]
-print('units', len(units), 'total', len(full['units']), 'speech s', round(sum(u['b'] - u['a'] for u in full['units']), 1))
+print('broll clips used', len(used), sorted(used)); print('units', len(units), 'total', len(full['units']), 'speech s', round(sum(u['b'] - u['a'] for u in full['units']), 1))

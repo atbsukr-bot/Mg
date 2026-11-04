@@ -437,7 +437,7 @@ def build(edl_path, out_path, preview=False, assets_only=False):
     for tw in whips:
         i = int((tw - 0.35) * msr); j = min(len(sfx), i + len(wsx))
         if i >= 0:
-            sfx[i:j] += wsx[:j - i] * 0.22
+            sfx[i:j] += wsx[:j - i] * 0.12
     for u in tl:
         for name, off, vol in u.get('sfx', []):
             s, _ = wav_read(os.path.join(ROOT, 'public', 'sfx', f'{name}.wav'))
@@ -455,11 +455,12 @@ def build(edl_path, out_path, preview=False, assets_only=False):
     logo = os.path.join(ROOT, 'public', 'logo.png')
     fc = (
         # voice: clean-up chain (manual EQ/compression, no AI enhancement)
-        f"[1:a]aresample=48000,highpass=f=80,lowpass=f=12000,afftdn=nf=-28,acompressor=threshold=-22dB:ratio=3:attack=8:release=120,"
-        f"loudnorm=I=-16:TP=-1.5:LRA=8,asplit=2[vo][vk];"
+        f"[1:a]aresample=48000,highpass=f=90,equalizer=f=300:t=q:w=1:g=-3,equalizer=f=3000:t=q:w=0.8:g=7,equalizer=f=5500:t=q:w=1:g=5,"
+        f"highshelf=f=8000:g=4,afftdn=nf=-32,acompressor=threshold=-22dB:ratio=3:attack=8:release=120,"
+        f"loudnorm=I=-16:TP=-1.5:LRA=8,aresample=48000,asplit=2[vo][vk];"
         # music ducks under the voice: base level ~0.11, ~0.06 under speech
         f"[2:a]volume=0.11[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];"
-        f"[3:a]volume=0.8[sx];"
+        f"[3:a]volume=0.42[sx];"
         f"[vo][md][sx]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89[a];"
         f"[4:v]scale=110:110[lg];"
         f"[0:v]fps={FPS},setpts=N/{FPS}/TB,{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
@@ -468,7 +469,8 @@ def build(edl_path, out_path, preview=False, assets_only=False):
     fc = fc.replace('scale=110:110', f'scale={int(110 * W / 1920)}:{int(110 * W / 1920)},format=rgba,colorchannelmixer=aa=0.85')
     enc = ['-c:v', 'libx264', '-preset', 'medium' if not preview else 'veryfast', '-crf', '18' if not preview else '24',
            '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart']
-    run(['ffmpeg', '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-i', vpath, '-i', os.path.join(WORK, 'bed.wav'), '-i', os.path.join(WORK, 'sfx.wav'),
+    # -noautorotate: cam2 pieces carry the phone's (wrong) rotate flag; never let it turn the whole video portrait
+    run(['ffmpeg', '-v', 'error', '-y', '-noautorotate', '-f', 'concat', '-safe', '0', '-i', lst, '-i', vpath, '-i', os.path.join(WORK, 'bed.wav'), '-i', os.path.join(WORK, 'sfx.wav'),
          '-loop', '1', '-i', logo, '-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-t', f'{total:.3f}', *enc, out_path])
     print('built', out_path, f'{total / 60:.1f} min', len(tl), 'units')
 
@@ -510,6 +512,7 @@ WrapStyle: 2
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Cap,Cairo Cap,100,&H00D6E2E8,&H0041A4D9,&H00101210,&H96101210,0,0,0,0,100,100,0,0,3,22,0,2,240,240,80,1
+Style: Banner,Cairo Cap,74,&H00D6E2E8,&H0041A4D9,&H001E1E7A,&HC0101210,0,0,0,0,100,100,0,0,3,26,0,8,240,240,70,1
 Style: Key,Cairo Cap,100,&H0041A4D9,&H0041A4D9,&H00101210,&H96101210,0,0,0,0,100,100,0,0,3,22,0,2,240,240,80,1
 
 [Events]
@@ -517,6 +520,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     lines = []
     for u in tl:
+        if u.get('banner'):
+            lines.append(f"Dialogue: 1,{ts(u['t'] + 0.2)},{ts(u['t'] + 7.0)},Banner,,0,0,0,,{{\\fad(300,300)}}{u['banner']}")
         txt = (u.get('text') or '').strip()
         if not txt:
             continue
