@@ -668,7 +668,6 @@
     },
     "lead": 3.0
    },
-   "cap_on_insert": true,
    "sfx": [
     [
      "tick",
@@ -1597,8 +1596,7 @@
      "m": 17
     },
     "lead": 1.5
-   },
-   "cap_on_insert": true
+   }
   },
   {
    "id": "p2_t8",
@@ -1777,7 +1775,6 @@
     },
     "lead": 0.0
    },
-   "cap_on_insert": true,
    "sfx": [
     [
      "tick",

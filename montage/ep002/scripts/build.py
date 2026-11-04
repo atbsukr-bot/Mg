@@ -31,6 +31,46 @@ os.makedirs(WORK, exist_ok=True)
 GAZE = json.load(open(os.path.join(WORK, 'gaze.json'))) if os.path.exists(os.path.join(WORK, 'gaze.json')) else []
 
 
+MIN_LOOK = 0.6   # a look shorter than this is a glance: it does not get its own cut
+
+
+def gaze_split(a, b, cam0):
+    """split master range [a,b) into (a, b, cam) parts by where the owner is looking (work/gaze.json, 0.2 s samples).
+    cam1 is only used inside its recording; parts shorter than MIN_LOOK merge into the previous part.
+    Split points sit on frame boundaries so the concat timing stays exact."""
+    c1_ok = lambda t0, t1: 0 <= t0 - SYNC['cam1'] and t1 - SYNC['cam1'] <= CAM1_DUR
+    if not GAZE or not cfg.get('c2_available', True):
+        return [(a, b, cam0 if c1_ok(a, b) else 'c2')]
+    lab = [(t, l) for t, l, *_ in GAZE if a <= t < b]
+    if not lab:
+        return [(a, b, cam0 if c1_ok(a, b) else 'c2')]
+    runs = []   # [start, cam]
+    for t, l in lab:
+        if not runs or runs[-1][1] != l:
+            runs.append([max(a, t - 0.1) if runs else a, l])
+    parts = []
+    for i, (s, l) in enumerate(runs):
+        e = runs[i + 1][0] if i + 1 < len(runs) else b
+        s = a + round((s - a) * FPS) / FPS; e = b if i + 1 == len(runs) else a + round((e - a) * FPS) / FPS
+        if parts and (e - s < MIN_LOOK or parts[-1][2] == l):
+            parts[-1][1] = e
+        else:
+            parts.append([s, e, l])
+    if len(parts) > 1 and parts[0][1] - parts[0][0] < MIN_LOOK:   # a short first part joins the next one
+        parts[1][0] = parts[0][0]; parts.pop(0)
+    out = []
+    for s, e, l in parts:
+        if e - s < 1 / FPS:
+            continue
+        if l == 'c1' and not c1_ok(s, e):
+            l = 'c2'
+        if out and out[-1][2] == l:
+            out[-1] = (out[-1][0], e, l)
+        else:
+            out.append((s, e, l))
+    return out or [(a, b, cam0)]
+
+
 def run(cmd, **kw):
     subprocess.run(cmd, check=True, **kw)
 
@@ -262,11 +302,13 @@ def build(edl_path, out_path, preview=False, assets_only=False):
             if last and o1 > oc + d:          # the unit's trailing gap holds on the last run
                 s1 = o1
             if s1 > s0 + 1e-6:
-                base = u.get('zoom')
-                z = base if base is not None else (1.0, 1.16, 1.0, 1.3)[zstate[0] % 4]
-                zstate[0] += 1
                 src_a = sa + (s0 - oc)
-                pieces.append((piece(u['cam'], src_a, src_a + (s1 - s0), z, u.get('look'), tuple(u.get('c', cfg['face'][u['cam']]))), s1 - s0))
+                # owner's rule: the shot is always the camera he is looking into, switching mid-sentence if his eyes do
+                for ca, cb, cam in gaze_split(src_a, src_a + (s1 - s0), u['cam']):
+                    base = u.get('zoom')
+                    z = base if base is not None else (1.0, 1.16, 1.0, 1.3)[zstate[0] % 4]
+                    zstate[0] += 1
+                    pieces.append((piece(cam, ca, cb, z, u.get('look'), tuple(u.get('c', cfg['face'][cam]))), cb - ca))
             oc += d
 
     for u in tl:
@@ -292,17 +334,14 @@ def build(edl_path, out_path, preview=False, assets_only=False):
     for (p0, d0), (p1, _d1) in zip(pieces, pieces[1:]):
         tt += d0
         k0, k1 = kind(p0), kind(p1)
-        cam_change = k0 == k1 == 'p_' and piece_cam.get(p0) != piece_cam.get(p1)
-        if k0 != k1 or cam_change:
+        # angle changes between the two cameras follow his eyes and are clean cuts (identity card #002); whips only on source changes
+        if k0 != k1:
             whips.append(round(tt, 3))
     lst = os.path.join(WORK, 'concat.txt')
     with open(lst, 'w') as f:
         for p, d in pieces:
             f.write(f"file '{p}'\nduration {d:.4f}\n")
-    vcat = os.path.join(WORK, 'vcat.mp4')
-    # re-time every piece to exact frame counts so audio and video never drift
-    run(['ffmpeg', '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-vf', f'fps={FPS},setpts=N/{FPS}/TB',
-         '-c:v', 'libx264', '-preset', 'faster', '-crf', '15', '-an', vcat])
+    # no intermediate concat file (it was ~7 GB and a whole extra encode): the final pass reads the pieces directly
 
     # ---------- voice ----------
     voice = np.zeros(int(total * sr) + sr)
@@ -376,13 +415,13 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         f"[3:a]volume=0.8[sx];"
         f"[vo][md][sx]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89[a];"
         f"[4:v]scale=110:110[lg];"
-        f"[0:v]{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
+        f"[0:v]fps={FPS},setpts=N/{FPS}/TB,{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
         f"[sv][lg]overlay=x=60*{W}/1920:y=50*{H}/1080:enable='between(t,3,{total - (edl.get('tail', 4.0) if edl.get('end') else 0):.2f})':format=auto,format=yuv420p[v]"
     )
     fc = fc.replace('scale=110:110', f'scale={int(110 * W / 1920)}:{int(110 * W / 1920)},format=rgba,colorchannelmixer=aa=0.85')
     enc = ['-c:v', 'libx264', '-preset', 'medium' if not preview else 'veryfast', '-crf', '18' if not preview else '24',
            '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart']
-    run(['ffmpeg', '-v', 'error', '-y', '-i', vcat, '-i', vpath, '-i', os.path.join(WORK, 'bed.wav'), '-i', os.path.join(WORK, 'sfx.wav'),
+    run(['ffmpeg', '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-i', vpath, '-i', os.path.join(WORK, 'bed.wav'), '-i', os.path.join(WORK, 'sfx.wav'),
          '-loop', '1', '-i', logo, '-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-t', f'{total:.3f}', *enc, out_path])
     print('built', out_path, f'{total / 60:.1f} min', len(tl), 'units')
 
@@ -432,8 +471,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     lines = []
     for u in tl:
         txt = (u.get('text') or '').strip()
-        if not txt or u.get('ins') and not u.get('cap_on_insert'):
+        if not txt:
             continue
+        # a full-screen graphic carries its own text: captions only run over the face lead-in before it (clean graphic)
+        cap_end = u['t'] + u['d']
+        if u.get('ins') and not u.get('cap_on_insert'):
+            cap_end = u['t'] + round(u['ins'].get('lead', 0.0) * FPS) / FPS
+            if cap_end <= u['t'] + 0.3:
+                continue
         for ch in ('…', '...', '.', ':', '؟', '?', '!'):
             txt = txt.replace(ch, ' ')
         txt = txt.replace('،', ' ').replace(',', ' ')
@@ -447,7 +492,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             # libass reorders RTL runs split by inline colour tags, so a key line is coloured as a whole
             if any(k in s for k in u.get('key', [])):
                 s = '{\\c&H0041A4D9&}' + s
-            lines.append(f'Dialogue: 0,{ts(t0)},{ts(t0 + d)},Cap,,0,0,0,,{s}')
+            if t0 < cap_end - 0.2:
+                lines.append(f'Dialogue: 0,{ts(t0)},{ts(min(t0 + d, cap_end))},Cap,,0,0,0,,{s}')
             t0 += d
     open(path, 'w').write(hdr + '\n'.join(lines) + '\n')
 
