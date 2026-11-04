@@ -384,6 +384,14 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         # angle changes between the two cameras follow his eyes and are clean cuts (identity card #002); whips only on source changes
         if k0 != k1 and {k0, k1} != {'p_', 'c_'}:
             whips.append(round(tt, 3))
+    face_rng, tt = [], 0.0
+    for p, d in pieces:
+        if kind(p) == 'p_':
+            if face_rng and abs(face_rng[-1][1] - tt) < 1e-3:
+                face_rng[-1][1] = tt + d
+            else:
+                face_rng.append([tt, tt + d])
+        tt += d
     lst = os.path.join(WORK, 'concat.txt')
     with open(lst, 'w') as f:
         for p, d in pieces:
@@ -457,14 +465,14 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         # voice: clean-up chain (manual EQ/compression, no AI enhancement)
         f"[1:a]aresample=48000,highpass=f=90,equalizer=f=300:t=q:w=1:g=-3,equalizer=f=3000:t=q:w=0.8:g=7,equalizer=f=5500:t=q:w=1:g=5,"
         f"highshelf=f=8000:g=4,afftdn=nf=-32,acompressor=threshold=-22dB:ratio=3:attack=8:release=120,"
-        f"loudnorm=I=-16:TP=-1.5:LRA=8,aresample=48000,asplit=2[vo][vk];"
+        f"loudnorm=I=-15:TP=-1.5:LRA=8,aresample=48000,asplit=2[vo][vk];"
         # music ducks under the voice: base level ~0.11, ~0.06 under speech
-        f"[2:a]volume=0.11[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];"
+        f"[2:a]volume=0.075[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];"
         f"[3:a]volume=0.42[sx];"
         f"[vo][md][sx]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89[a];"
         f"[4:v]scale=110:110[lg];"
-        f"[0:v]fps={FPS},setpts=N/{FPS}/TB,{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
-        f"[sv][lg]overlay=x=60*{W}/1920:y=50*{H}/1080:enable='between(t,3,{total - (edl.get('tail', 4.0) if edl.get('end') else 0):.2f})':format=auto,format=yuv420p[v]"
+        f"[0:v]fps={FPS},setpts=N/{FPS}/TB,{handheld(face_rng)}{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
+        f"[sv][lg]overlay=x={W}-60*{W}/1920-{int(110 * W / 1920)}:y=50*{H}/1080:enable='between(t,3,{total - (edl.get('tail', 4.0) if edl.get('end') else 0):.2f})':format=auto,format=yuv420p[v]"
     )
     fc = fc.replace('scale=110:110', f'scale={int(110 * W / 1920)}:{int(110 * W / 1920)},format=rgba,colorchannelmixer=aa=0.85')
     enc = ['-c:v', 'libx264', '-preset', 'medium' if not preview else 'veryfast', '-crf', '18' if not preview else '24',
@@ -487,6 +495,18 @@ def out_time(u, src_t):
     return oc
 
 
+def handheld(rng):
+    """owner's style: a handheld feel on every face shot (slow drift + base push 1.06), none on graphics / B-roll"""
+    if not rng:
+        return ''
+    F = '+'.join(f'between(t,{a:.3f},{b - 0.001:.3f})' for a, b in rng)
+    z = f"(1+({F})*(0.06+0.012*sin(t*0.37)))"
+    dx = f"(({F})*(9*sin(t*1.13)+5*sin(t*2.71)))"
+    dy = f"(({F})*(6*sin(t*0.91+1.3)+4*sin(t*2.17)))"
+    return (f"scale=w='trunc({W}*{z}/2)*2':h='trunc({H}*{z}/2)*2':eval=frame:flags=bicubic,"
+            f"crop={W}:{H}:x='(iw-{W})/2+{dx}':y='(ih-{H})/2+{dy}',")
+
+
 def whip_filter(whips):
     if not whips:
         return ''
@@ -498,6 +518,39 @@ def whip_filter(whips):
 def ts(x):
     hh = int(x // 3600); mm = int(x % 3600 // 60); ss = x % 60
     return f'{hh}:{mm:02d}:{ss:05.2f}'
+
+
+def cap_chunks(txt, keys):
+    """owner's caption style: 2-4 words per line; the key phrase is its own line (red box).
+    -> [(words, is_key), ...]"""
+    words = txt.split()
+    marks = [False] * len(words)
+    for k in keys:
+        kw = k.replace('،', ' ').replace('…', ' ').split()
+        for i in range(len(words) - len(kw) + 1):
+            if [w.strip('،.؟?!:…') for w in words[i:i + len(kw)]] == kw:
+                for j in range(i, i + len(kw)):
+                    marks[j] = True
+                break
+    out, i = [], 0
+    while i < len(words):
+        j = i
+        while j < len(words) and marks[j] == marks[i]:
+            j += 1
+        run = words[i:j]
+        if marks[i]:
+            out.append((run, True))
+        else:
+            n = len(run)
+            k = 0
+            while k < n:
+                left = n - k
+                step = left if left <= 4 else (3 if left != 5 else 3)
+                if left - step == 1:
+                    step -= 1
+                out.append((run[k:k + step], False)); k += step
+        i = j
+    return out
 
 
 def write_ass(tl, path, _words):
@@ -513,7 +566,7 @@ WrapStyle: 2
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Cap,Cairo Cap,100,&H00D6E2E8,&H0041A4D9,&H00101210,&H96101210,0,0,0,0,100,100,0,0,3,22,0,2,240,240,80,1
 Style: Banner,Cairo Cap,74,&H00D6E2E8,&H0041A4D9,&H001E1E7A,&HC0101210,0,0,0,0,100,100,0,0,3,26,0,8,240,240,70,1
-Style: Key,Cairo Cap,100,&H0041A4D9,&H0041A4D9,&H00101210,&H96101210,0,0,0,0,100,100,0,0,3,22,0,2,240,240,80,1
+Style: Key,Cairo Cap,104,&H00FFFFFF,&H00FFFFFF,&H002A26E3,&H962A26E3,0,0,0,0,100,100,0,0,3,24,0,2,240,240,80,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -534,18 +587,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         for ch in ('…', '...', '.', ':', '؟', '?', '!'):
             txt = txt.replace(ch, ' ')
         txt = txt.replace('،', ' ').replace(',', ' ')
-        words = txt.split()
-        chunks = [words[i:i + 5] for i in range(0, len(words), 5)]
-        wts = [sum(len(w) for w in c) + 2 for c in chunks]
+        chunks = cap_chunks(txt, u.get('key', []))
+        wts = [sum(len(w) for w in c) + 2 for c, _k in chunks]
         tot = sum(wts); t0 = u['t'] + 0.05
-        for c, wt in zip(chunks, wts):
+        for (c, is_key), wt in zip(chunks, wts):
             d = (u['d'] - 0.1) * wt / tot
-            s = ' '.join(c)
-            # libass reorders RTL runs split by inline colour tags, so a key line is coloured as a whole
-            if any(k in s for k in u.get('key', [])):
-                s = '{\\c&H0041A4D9&}' + s
             if t0 < cap_end - 0.2:
-                lines.append(f'Dialogue: 0,{ts(t0)},{ts(min(t0 + d, cap_end))},Cap,,0,0,0,,{s}')
+                lines.append(f"Dialogue: 0,{ts(t0)},{ts(min(t0 + d, cap_end))},{'Key' if is_key else 'Cap'},,0,0,0,,{' '.join(c)}")
             t0 += d
     open(path, 'w').write(hdr + '\n'.join(lines) + '\n')
 

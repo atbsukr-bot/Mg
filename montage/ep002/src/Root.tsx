@@ -17,7 +17,7 @@ const items: [string, React.FC<any>, any][] = [
   ['EndCard', EndCard, {}],
   ['BigTitle', BigTitle, {title: 'بلاغ بلا عنوان'}],
   ['Black', Black, {}],
-  ['PaperScene', PaperScene, {date: '2016', place: 'حي حطين', person: {name: 'عبدالرحمن', note: 'رجّال أعمال معروف في الحي'}, items: [{text: 'لقوه ميت في بيته', at: 1}, {text: 'التقرير: طاح من الدرج', tone: 'red', at: 2}]}],
+  ['PaperScene', PaperScene, {}],   // no default content: build.py props would merge over it
 ];
 export const RemotionRoot: React.FC = () => (
   <>

@@ -167,14 +167,14 @@ export const PaperScene: React.FC<{dur: number; date?: string; place?: string; p
   items?: Item[]; title?: string}> = ({dur, date, place, person, items = [], title}) => {
   const W = 2560, fps = 30;
   const listX = person ? 1720 : W / 2;
-  const size = 66, gap = 128;
+  const size = 82, gap = 152;
   const y0 = person ? 470 : 640 - ((items.length - 1) * gap) / 2 + (title ? 70 : 0);
   return (
     <AbsoluteFill style={{background: '#000'}}>
       <PaperBg dur={dur} />
       {date && <Sequence from={4} layout="none"><DateStamp dur={dur - 4} x={430} y={190} text={date} size={70} /></Sequence>}
       {place && <Sequence from={12} layout="none"><PaperTag dur={dur - 12} text={place} x={2080} y={200} tone="yellow" tape size={60} tilt={1.5} /></Sequence>}
-      {title && <Sequence from={8} layout="none"><PaperTag dur={dur - 8} text={title} x={W / 2} y={y0 - 170} tone="paper" size={84} bullet={false} /></Sequence>}
+      {title && <Sequence from={8} layout="none"><PaperTag dur={dur - 8} text={title} x={W / 2} y={y0 - 190} tone="paper" size={100} bullet={false} /></Sequence>}
       {person && <Sequence from={14} layout="none"><PersonCard dur={dur - 14} x={760} y={720} name={person.name} note={person.note} fileNo={person.fileNo} scale={1.55} /></Sequence>}
       {items.map((it, i) => {
         const at = Math.max(0, Math.round(it.at * fps));

@@ -352,6 +352,8 @@ def review(units):
             used.add(br['src'])
         if u['id'] == 'p2_m4' and not u.get('broll') and 'riyadh_highway.mp4' not in used:
             u['broll'] = dict(src='riyadh_highway.mp4', ss=2, look='night', lead=5.0, frame=False); used.add('riyadh_highway.mp4')
+        if u['id'] in ('coffee', 'p2_z13'):        # owner's style: the subscribe reminder shows twice
+            u['banner'] = 'اشترك في القناة وفعّل الجرس'
         if u['id'] == 'p2_e6':
             u.pop('broll', None)
             u['banner'] = APOLOGY
