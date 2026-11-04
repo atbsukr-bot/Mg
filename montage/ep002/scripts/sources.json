@@ -4,7 +4,7 @@
  },
  "cam1_dur": 1134.92,
  "cam1_file": "cam1_1440.mp4",
- "cam2_file": "cam2_1440.mp4",
+ "cam2_file": "cam2.mp4",
  "voice": "c2",
  "voice_wav": "../work/cam2.wav",
  "voice_offset": 0.0,
