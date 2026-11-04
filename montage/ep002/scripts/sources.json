@@ -1,0 +1,26 @@
+{
+ "sync": {
+  "cam1": -19.86
+ },
+ "cam1_dur": 1134.92,
+ "cam1_file": "cam1_1440.mp4",
+ "cam2_file": "cam2_1440.mp4",
+ "voice": "c2",
+ "voice_wav": "../work/cam2.wav",
+ "voice_offset": 0.0,
+ "face": {
+  "c1": [
+   0.46,
+   0.38
+  ],
+  "c2": [
+   0.76,
+   0.4
+  ]
+ },
+ "grade": {
+  "c1": "hqdn3d=3:3:6:6,curves=master='0/0 0.25/0.36 0.5/0.62 0.8/0.88 1/1',eq=contrast=1.04:saturation=1.05,colorbalance=rs=-0.02:bs=0.03:rh=0.02,vignette=angle=PI/6",
+  "c2": "hqdn3d=3:3:6:6,eq=brightness=0.01:contrast=1.06:saturation=0.9,colorbalance=rs=-0.05:gs=-0.01:bs=0.06:rm=-0.03:bm=0.04,vignette=angle=PI/6"
+ },
+ "c2_available": true
+}

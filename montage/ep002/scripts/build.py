@@ -27,6 +27,7 @@ SYNC = cfg['sync']            # {"cam1": offset}  master = cam1 + offset
 CAM1_DUR = cfg['cam1_dur']
 VOICE = cfg['voice']          # which camera's audio is the voice: "c1" | "c2" (or per-range list)
 os.makedirs(WORK, exist_ok=True)
+GAZE = json.load(open(os.path.join(WORK, 'gaze.json'))) if os.path.exists(os.path.join(WORK, 'gaze.json')) else []
 
 
 def run(cmd, **kw):
@@ -53,18 +54,47 @@ def cam_input(cam, t_master):
 
 
 piece_cam = {}
+_cascade = None
+
+
+def face_center(src, t, cam):
+    """punch-ins follow the face: detect it in one frame and centre the crop there (None if not found)"""
+    global _cascade
+    try:
+        import cv2
+    except ImportError:
+        return None
+    if _cascade is None:
+        _cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    w, hh = 960, 540
+    pre = ['-noautorotate'] if cam == 'c2' else []
+    raw = subprocess.run(['ffmpeg', '-v', 'quiet', *pre, '-ss', f'{t:.3f}', '-i', src, '-frames:v', '1', '-vf', f'scale={w}:{hh},format=gray',
+                          '-f', 'rawvideo', '-'], capture_output=True).stdout
+    if len(raw) < w * hh:
+        return None
+    g = np.frombuffer(raw[:w * hh], np.uint8).reshape(hh, w)
+    f = _cascade.detectMultiScale(g, 1.1, 5, minSize=(50, 50))
+    if len(f) == 0:
+        return None
+    x, y, fw, fh = max(f, key=lambda r: r[2] * r[3])
+    # centre a little below the eyes so the chin and shoulders stay in a tight shot
+    return ((x + fw / 2) / w, min(0.62, (y + fh * 0.75) / hh))
 
 
 def piece(cam, a, b, zoom, look, crop_c):
     """render one camera piece (video only) to an intermediate clip"""
     src, t0 = cam_input(cam, a)
     # cache key in camera-local time, so re-syncing the master clock reuses rendered pieces
-    key = h('p5', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam))
+    key = h('p6', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam))
     out = os.path.join(WORK, f'p_{key}.mp4')
     if os.path.exists(out):
         piece_cam[out] = cam
         return out
     cx, cy = crop_c
+    if zoom > 1.001:
+        fc = face_center(src, t0 + min(0.5, (b - a) / 2), cam)
+        if fc:
+            cx, cy = fc
     vf = []
     if cam == 'c2':
         vf.append('null')  # cam2 is read with -noautorotate (sensor is landscape; the rotate flag is wrong)
@@ -194,7 +224,10 @@ def build(edl_path, out_path, preview=False):
         cam = u.get('cam', 'auto')
         c1_ok = 0 <= u['a'] - SYNC['cam1'] and u['b'] - SYNC['cam1'] <= CAM1_DUR
         if cam == 'auto':
-            cam = ('c1' if alt % 3 != 2 else 'c2') if c1_ok else 'c2'
+            # owner's rule: the angle follows his eyes. gaze.json says which camera he faces at each moment
+            g = [lab for tg, lab, *_ in GAZE if u['a'] <= tg <= u['b']]
+            look2 = g and g.count('c2') > len(g) / 2
+            cam = 'c2' if (look2 or not c1_ok) else 'c1'
             alt += 1
         if cam == 'c1' and not c1_ok:
             cam = 'c2'
