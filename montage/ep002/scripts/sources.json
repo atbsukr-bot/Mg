@@ -19,8 +19,8 @@
   ]
  },
  "grade": {
-  "c1": "hqdn3d=3:3:6:6,curves=master='0/0 0.25/0.36 0.5/0.62 0.8/0.88 1/1',eq=contrast=1.04:saturation=1.05,colorbalance=rs=-0.02:bs=0.03:rh=0.02,vignette=angle=PI/6",
-  "c2": "hqdn3d=3:3:6:6,eq=brightness=0.01:contrast=1.06:saturation=0.9,colorbalance=rs=-0.05:gs=-0.01:bs=0.06:rm=-0.03:bm=0.04,vignette=angle=PI/6"
+  "c1": "curves=master='0/0 0.25/0.33 0.5/0.58 0.8/0.86 1/1',eq=saturation=1.06,colorbalance=rh=0.02",
+  "c2": "hqdn3d=2:2:4:4,curves=master='0/0 0.25/0.27 0.5/0.53 0.8/0.84 1/1',eq=contrast=1.05:saturation=0.95,colorbalance=rs=-0.04:bs=0.05:rm=-0.03:bm=0.03"
  },
  "c2_available": true
 }
