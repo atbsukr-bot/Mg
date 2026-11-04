@@ -1,5 +1,6 @@
 import React from 'react';
 import {Composition} from 'remotion';
+import {PaperScene} from './Paper';
 import {Chapter, Clock, CallRecord, Phone, MapRoute, Scene, Year, Quote, EndCard, BigTitle, Black} from './Inserts';
 
 // every insert takes {dur} (frames) so build.py can size it to the narration it covers
@@ -16,6 +17,7 @@ const items: [string, React.FC<any>, any][] = [
   ['EndCard', EndCard, {}],
   ['BigTitle', BigTitle, {title: 'بلاغ بلا عنوان'}],
   ['Black', Black, {}],
+  ['PaperScene', PaperScene, {date: '2016', place: 'حي حطين', person: {name: 'عبدالرحمن', note: 'رجّال أعمال معروف في الحي'}, items: [{text: 'لقوه ميت في بيته', at: 1}, {text: 'التقرير: طاح من الدرج', tone: 'red', at: 2}]}],
 ];
 export const RemotionRoot: React.FC = () => (
   <>

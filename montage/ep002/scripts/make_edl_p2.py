@@ -298,6 +298,41 @@ DROP_INS = {'p2_h10', 'p2_e10', 'p2_e1', 'p2_t7'}      # repeats of the Scene / 
 APOLOGY = 'الكاميرا الأساسية طفت… أعتذر منكم، وبنكمل القصة من الكاميرا الثانوية'
 
 
+# archive / paper scenes (owner's kit style), one per story beat, each with its own content: (lead s, props)
+def _i(*xs):
+    return [dict(text=t, at=a, **({'tone': tone} if tone else {})) for t, a, tone in xs]
+
+
+PAPER = {
+    's5': (0.6, dict(place='مركز الشرطة', person=dict(name='الرقيب سعد', note='خمستعش سنة في الخدمة', fileNo='٠١'))),
+    'f3b': (1.0, dict(person=dict(name='الملازم فيصل', note='ضابط الدوريات المناوب', fileNo='٠٢'),
+                      items=_i(('ذكي', 1.0, None), ('دقيق', 1.6, None), ('يحب التفاصيل', 2.3, 'red')))),
+    'p2_o2': (0.3, dict(date='2016', place='حي حطين', person=dict(name='عبدالرحمن', note='رجّال أعمال معروف في الحي', fileNo='٠٣'))),
+    'p2_o4': (0.5, dict(title='التقرير الرسمي', items=_i(('طاح من الدرج', 0.8, None), ('حادثة', 2.2, 'red')))),
+    'p2_w9': (0.8, dict(date='02:00', items=_i(('صوت سيارة قدام البيت', 0.0, None), ('الباب ينفتح', 0.8, None), ('صوتين في الصالة', 2.0, None),
+                                                ('الأول: عبدالرحمن', 3.3, None), ('الثاني: ما عرفته', 4.8, 'red')))),
+    'p2_w17': (0.5, dict(title='تقرير المحققين', items=_i(('ما فيه آثار كسر', 0.3, None), ('ولا شي مسروق', 1.5, None), ('الباب ما فيه خدش', 2.6, None),
+                                                          ('السيارة؟ يمكن جار', 5.0, 'red')))),
+    'p2_h11': (1.5, dict(title='الصالة الكبيرة', items=_i(('مسرح جريمة كامل', 0.0, None), ('ما فيه جثة', 2.5, None), ('ولا دم', 3.3, None),
+                                                          ('ولا أي أثر', 4.2, 'red')))),
+    'p2_e9': (0.8, dict(title='الأدلة', items=_i(('١ تلفون بقرص… سماعته دافية', 0.0, None), ('٢ ساعة يد واقفة على 2:17', 0.6, None),
+                                                 ('٣ صورة عائلية… بنت تسع سنين', 1.5, 'red')))),
+    'p2_r22': (0.8, dict(title='آثار أقدام', items=_i(('مقاس صغير', 0.0, None), ('من الباب للصالة', 1.2, None), ('من الصالة للدرج', 2.8, None),
+                                                      ('وترجع', 4.5, 'red')))),
+    'p2_b9': (1.5, dict(date='01:30', place='محطة بنزين قريبة', items=_i(('كشف حساب بنكي قديم', 0.0, None), ('عملية دفع قريبة من البيت', 3.0, None),
+                                                                        ('ليلة وفاة عبدالرحمن', 7.0, 'red')))),
+    'p2_b10': (1.0, dict(person=dict(name='مازن', note='شريك عبدالرحمن في التجارة', fileNo='٠٤'))),
+    'p2_m9': (1.0, dict(title='أقواله ضد الدليل', items=_i(('قال: كنت برا الرياض', 0.0, None), ('بطاقته: محطة قريبة من البيت', 2.5, None),
+                                                           ('الساعة 1:30 الفجر', 6.0, 'red')))),
+    'p2_m15': (2.0, dict(person=dict(name='أبو نواف', note='المحقق اللي قفل القضية', fileNo='٠٥'), items=_i(('متقاعد من سنتين', 3.0, None)))),
+    'p2_t2': (0.3, dict(person=dict(name='نوف', note='بنت عبدالرحمن', fileNo='٠٦'), items=_i(('عايشة مع أمها', 0.8, None), ('طالبة جامعة', 2.4, None)))),
+    'p2_t11': (0.3, dict(title='اعترافها', items=_i(('رسمت الطباشير', 0.0, None), ('حطت الأدلة', 1.4, None), ('فتحت الباب', 2.8, 'red')))),
+    'p2_n3': (0.5, dict(title='ليلة الذكرى', items=_i(('سعد: جنب التلفون في المركز', 0.0, None), ('نوف وأمها: مكتب ثاني', 3.5, None)))),
+    'p2_z7': (0.5, dict(title='أسئلة بلا جواب', items=_i(('مين اتصل الساعة 2:17؟', 0.0, None), ('من رقم مفصول؟', 1.0, None), ('من تلفون بدون سلك؟', 2.0, None),
+                                                         ('مين حط العلامة الرابعة؟', 3.5, 'red')))),
+}
+
+
 def review(units):
     used, out = set(), []
     for u in units:
@@ -306,6 +341,10 @@ def review(units):
             continue
         if u['id'] in DROP_INS:
             u.pop('ins', None); u.pop('cap_on_insert', None)
+        if u['id'] in PAPER:
+            lead, props = PAPER[u['id']]
+            u.pop('broll', None); u.pop('cap_on_insert', None)
+            u['ins'] = dict(id='PaperScene', props=props, lead=lead)
         br = u.get('broll')
         if br and (br['src'] in BANNED or br['src'] in used):
             u.pop('broll')
