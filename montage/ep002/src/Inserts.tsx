@@ -232,7 +232,7 @@ export const Scene: React.FC<{markers?: number; highlight?: number}> = ({markers
   const f = useCurrentFrame();
   const draw = ramp(f, 6, 60);
   const L = 3000;
-  const marks = [{x: -420, y: -160}, {x: 380, y: -260}, {x: 260, y: 300}];
+  const marks = [{x: -420, y: -160}, {x: 380, y: -260}, {x: 260, y: 300}, {x: -620, y: 320}];
   return (
     <Stage>
       <Push from={1.0} to={1.12}>
@@ -329,3 +329,6 @@ export const BigTitle: React.FC<{title: string; sub?: string; bg?: string}> = ({
     </AbsoluteFill>
   );
 };
+
+/* ================= black screen (scripted 3 s silence at 2:17) ================= */
+export const Black: React.FC = () => <AbsoluteFill style={{background: '#000'}} />;

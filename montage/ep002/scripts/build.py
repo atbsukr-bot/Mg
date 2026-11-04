@@ -11,8 +11,9 @@ EDL entry (one spoken unit, kept in order):
    "sfx": [["ring", 0.0, 0.5]],      [name, offset s, volume]
    "gap": 0.0,                       extra silence after the unit (dramatic pause)
    "music": "calm"|"tension"|"finale"|"none"   switch music cue from here
+   "mute": true,                     no voice under this unit (cards), room tone only
   }
-Usage: python3 scripts/build.py edl_A.json out/ep002_A.mp4 [--preview]
+Usage: python3 scripts/build.py edl_A.json out/ep002_A.mp4 [--preview] [--assets]
 """
 import hashlib, json, os, subprocess, sys, wave
 import numpy as np
@@ -172,7 +173,7 @@ def wav_read(p):
     return x.reshape(-1, ch).mean(1) if ch > 1 else x, w.getframerate()
 
 
-def build(edl_path, out_path, preview=False):
+def build(edl_path, out_path, preview=False, assets_only=False):
     edl = json.load(open(edl_path))
     units = edl['units']
     # ---------- voice analysis (needed to cut every silence) ----------
@@ -238,6 +239,16 @@ def build(edl_path, out_path, preview=False):
     total = t + (edl.get('tail', 4.0) if edl.get('end') else 0.0)
     json.dump([{k: u[k] for k in ('id', 't', 'd', 'segs', 'gap') if k in u} for u in tl], open(os.path.join(WORK, 'timeline.json'), 'w'))
 
+    if assets_only:   # pre-render graphics + B-roll (small) while the camera sources are still being prepared
+        for u in tl:
+            over = u.get('broll') or u.get('ins')
+            if over:
+                lead = round(over.get('lead', 0.0) * FPS) / FPS
+                rest = u['d'] + u['gap'] - lead
+                broll(u['broll'], rest) if u.get('broll') else insert(u['ins'], rest)
+        print('assets ready', round(total / 60, 1), 'min', len(tl), 'units')
+        return
+
     # ---------- video pieces ----------
     pieces = []  # (file, dur)
     zstate = [0]
@@ -299,6 +310,8 @@ def build(edl_path, out_path, preview=False):
     fade = int(0.02 * sr)
     rin = np.sin(np.linspace(0, np.pi / 2, fade)) ** 2
     for u in tl:
+        if u.get('mute'):   # chapter cards / black screen: room tone only, never stray set noise
+            continue
         oc = u['t']
         for sa, sb in u['segs']:
             seg = vx[max(0, int((sa - voff) * sr)):int((sb - voff) * sr)].copy()
@@ -440,4 +453,4 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 
 if __name__ == '__main__':
-    build(os.path.join(ROOT, 'scripts', sys.argv[1]), sys.argv[2], '--preview' in sys.argv)
+    build(os.path.join(ROOT, 'scripts', sys.argv[1]), sys.argv[2], '--preview' in sys.argv, '--assets' in sys.argv)

@@ -1,6 +1,6 @@
 import React from 'react';
 import {Composition} from 'remotion';
-import {Chapter, Clock, CallRecord, Phone, MapRoute, Scene, Year, Quote, EndCard, BigTitle} from './Inserts';
+import {Chapter, Clock, CallRecord, Phone, MapRoute, Scene, Year, Quote, EndCard, BigTitle, Black} from './Inserts';
 
 // every insert takes {dur} (frames) so build.py can size it to the narration it covers
 const meta = ({props}: {props: any}) => ({durationInFrames: Math.max(1, Math.round(props.dur ?? 150))});
@@ -15,6 +15,7 @@ const items: [string, React.FC<any>, any][] = [
   ['Quote', Quote, {text: 'لا تفتحون الباب الرابع'}],
   ['EndCard', EndCard, {}],
   ['BigTitle', BigTitle, {title: 'بلاغ بلا عنوان'}],
+  ['Black', Black, {}],
 ];
 export const RemotionRoot: React.FC = () => (
   <>
