@@ -566,7 +566,7 @@ WrapStyle: 2
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Cap,Cairo Cap,100,&H00D6E2E8,&H0041A4D9,&H00101210,&H96101210,0,0,0,0,100,100,0,0,3,22,0,2,240,240,80,1
 Style: Banner,Cairo Cap,74,&H00D6E2E8,&H0041A4D9,&H001E1E7A,&HC0101210,0,0,0,0,100,100,0,0,3,26,0,8,240,240,70,1
-Style: Key,Cairo Cap,104,&H00FFFFFF,&H00FFFFFF,&H002A26E3,&H962A26E3,0,0,0,0,100,100,0,0,3,24,0,2,240,240,80,1
+Style: Key,Cairo Cap,104,&H00D6E2E8,&H00D6E2E8,&H001E1E7A,&H961E1E7A,0,0,0,0,100,100,0,0,3,24,0,2,240,240,80,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
