@@ -1,0 +1,7 @@
+node_modules
+build/
+out/
+public/frames/
+public/voice.wav
+public/*.json
+.cache/
