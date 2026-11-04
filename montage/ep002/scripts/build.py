@@ -71,6 +71,33 @@ def gaze_split(a, b, cam0):
     return out or [(a, b, cam0)]
 
 
+AWAY = 18.0   # off-axis score (deg-ish) above which he is not looking into the camera that is filming
+
+
+def away_split(a, b):
+    """cam2-only stretch [a,b): (a, b, away?) parts. A look away from the lens shorter than MIN_LOOK stays on the face;
+    a face moment shorter than MIN_LOOK between two look-aways is covered too (no flicker)."""
+    smp = [(t, o2) for t, _l, _o1, o2, *_ in GAZE if a <= t < b]
+    if not smp:
+        return [(a, b, False)]
+    runs = []
+    for t, o2 in smp:
+        aw = o2 is not None and o2 > AWAY
+        if not runs or runs[-1][1] != aw:
+            runs.append([max(a, t - 0.1) if runs else a, aw])
+    parts = []
+    for i, (st, aw) in enumerate(runs):
+        e = runs[i + 1][0] if i + 1 < len(runs) else b
+        st = a + round((st - a) * FPS) / FPS; e = b if i + 1 == len(runs) else a + round((e - a) * FPS) / FPS
+        if parts and (e - st < MIN_LOOK or parts[-1][2] == aw):
+            parts[-1][1] = e
+        else:
+            parts.append([st, e, aw])
+    if len(parts) > 1 and parts[0][1] - parts[0][0] < MIN_LOOK:
+        parts[1][0] = parts[0][0]; parts.pop(0)
+    return [tuple(x) for x in parts if x[1] - x[0] >= 1 / FPS]
+
+
 def run(cmd, **kw):
     subprocess.run(cmd, check=True, **kw)
 
@@ -169,7 +196,7 @@ def broll(br, dur):
     z0, z1 = br.get('zoom', (1.0, 1.12))
     n = round(dur * FPS)
     key = h('b2', br, n)
-    out = os.path.join(WORK, f'b_{key}.mp4')
+    out = os.path.join(WORK, f"{'c' if br.get('cover') else 'b'}_{key}.mp4")
     if os.path.exists(out):
         return out
     zexpr = f"{z0}+({z1 - z0})*n/{max(n - 1, 1)}"
@@ -292,6 +319,18 @@ def build(edl_path, out_path, preview=False, assets_only=False):
     # ---------- video pieces ----------
     pieces = []  # (file, dur)
     zstate = [0]
+    covers = edl.get('cover', [])      # [[from_master_s, [clip, ...]], ...]
+    cstate = [0]
+
+    def cover_shot(t, dur):
+        pool = [c for t0, c in covers if t >= t0][-1] if any(t >= t0 for t0, _ in covers) else covers[0][1]
+        k = cstate[0]; cstate[0] += 1
+        src = pool[k % len(pool)]
+        sd = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0',
+                                   os.path.join(ROOT, 'public', 'broll', src)], capture_output=True, text=True).stdout)
+        span = max(0.1, sd - dur - 0.3)
+        ss = round((k // len(pool)) * 3.3 % span, 2)       # each reuse of a clip starts further in
+        return dict(src=src, ss=ss, look='night', frame=False, cover=True, zoom=(1.04, 1.14) if k % 2 else (1.14, 1.04))
 
     def face(u, o0, o1):
         """face pieces for output range [o0,o1) of unit u (relative), one per speech run: every jump cut alternates framing"""
@@ -305,10 +344,18 @@ def build(edl_path, out_path, preview=False, assets_only=False):
                 src_a = sa + (s0 - oc)
                 # owner's rule: the shot is always the camera he is looking into, switching mid-sentence if his eyes do
                 for ca, cb, cam in gaze_split(src_a, src_a + (s1 - s0), u['cam']):
-                    base = u.get('zoom')
-                    z = base if base is not None else (1.0, 1.16, 1.0, 1.3)[zstate[0] % 4]
-                    zstate[0] += 1
-                    pieces.append((piece(cam, ca, cb, z, u.get('look'), tuple(u.get('c', cfg['face'][cam]))), cb - ca))
+                    c1_ok = 0 <= ca - SYNC['cam1'] and cb - SYNC['cam1'] <= CAM1_DUR
+                    sub = away_split(ca, cb) if (cam == 'c2' and not c1_ok and covers) else [(ca, cb, False)]
+                    for pa, pb, aw in sub:
+                        if aw:
+                            # owner's rule: never on screen looking away from the lens. cam1 (the camera he is
+                            # looking into) had stopped, so this moment is covered with a B-roll shot; the voice runs on
+                            pieces.append((broll(cover_shot(pa, pb - pa), pb - pa), pb - pa))
+                            continue
+                        base = u.get('zoom')
+                        z = base if base is not None else (1.0, 1.16, 1.0, 1.3)[zstate[0] % 4]
+                        zstate[0] += 1
+                        pieces.append((piece(cam, pa, pb, z, u.get('look'), tuple(u.get('c', cfg['face'][cam]))), pb - pa))
             oc += d
 
     for u in tl:
@@ -335,7 +382,7 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         tt += d0
         k0, k1 = kind(p0), kind(p1)
         # angle changes between the two cameras follow his eyes and are clean cuts (identity card #002); whips only on source changes
-        if k0 != k1:
+        if k0 != k1 and {k0, k1} != {'p_', 'c_'}:
             whips.append(round(tt, 3))
     lst = os.path.join(WORK, 'concat.txt')
     with open(lst, 'w') as f:

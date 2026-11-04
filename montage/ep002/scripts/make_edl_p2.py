@@ -279,7 +279,17 @@ units = [
 p2 = dict(clock='master', note=__doc__, units=units)
 json.dump(p2, open(os.path.join(ROOT, 'scripts', 'edl_p2.json'), 'w'), ensure_ascii=False, indent=1)
 p1 = json.load(open(os.path.join(ROOT, 'scripts', 'edl_p1.json')))
-full = dict(clock='master', note='ep002 version A: part 1 + part 2 (master clock).', end=dict(id='EndCard', props={}), tail=6.0,
+# B-roll pools that cover the moments he looks at cam1 after it stopped recording (master >= 1115 s), by chapter
+COVER = [
+    [1115, ['flashlight1.mp4', 'dust.mp4', 'walk_room.mp4', 'flashlight2.mp4', 'abandoned_blue.mp4', 'old_house.mp4', 'flashlight_man.mp4',
+            'stairs.mp4', 'abandoned_window.mp4', 'flashlight_night.mp4']],
+    [1482, ['flashlight_night.mp4', 'dust.mp4', 'stairs.mp4', 'flashlight1.mp4', 'writing.mp4', 'abandoned_blue.mp4']],
+    [1723, ['writing.mp4', 'police_car.mp4', 'riyadh_drive.mp4', 'tea.mp4', 'riyadh_highway.mp4', 'police_lights.mp4', 'old_house.mp4']],
+    [1985, ['stairs.mp4', 'old_house.mp4', 'abandoned_window.mp4', 'writing.mp4', 'clock_close.mp4', 'abandoned_blue.mp4']],
+    [2181, ['clock_tick.mp4', 'phone_dial.mp4', 'police_lights.mp4', 'clock_wall.mp4', 'old_house.mp4', 'phone_call.mp4']],
+    [2342, ['old_house.mp4', 'clock_close.mp4', 'abandoned_window.mp4', 'phone_dial.mp4', 'riyadh_highway.mp4', 'dust.mp4']],
+]
+full = dict(clock='master', note='ep002 version A: part 1 + part 2 (master clock).', end=dict(id='EndCard', props={}), tail=6.0, cover=COVER,
             units=p1['units'] + units)
 json.dump(full, open(os.path.join(ROOT, 'scripts', 'edl_A.json'), 'w'), ensure_ascii=False, indent=1)
 ids = [u['id'] for u in full['units']]
