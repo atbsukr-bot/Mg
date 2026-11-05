@@ -483,9 +483,9 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         cue, start = (nxt or cue), tc
     if edl.get('end'):
         # owner, 5 Nov: "at the end the sound disappears" - after the last line only the ducked bed (0.075) was left under the
-        # end card. Bring the score up there (x3.5 = ~0.26) and let it fade out over the last 1.5 s
+        # end card. Bring the score up there (x1.3 over the 0.45 bed) and let it fade out over the last 1.5 s
         t0 = int((total - edl.get('tail', 4.0)) * msr); r = int(0.8 * msr)
-        g = np.ones(len(bed)); g[t0:t0 + r] = np.linspace(1, 5.0, r); g[t0 + r:] = 5.0
+        g = np.ones(len(bed)); g[t0:t0 + r] = np.linspace(1, 1.3, r); g[t0 + r:] = 1.3
         bed *= g
     sfx = np.zeros_like(bed)
     wsx, _ = wav_read(os.path.join(ROOT, 'public', 'sfx', 'whoosh.wav'))
@@ -519,10 +519,11 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         # owner, 5 Nov: the +7/+5/+4 dB presence boost sounded sharp -> gentle +3.5 dB clarity, de-esser, nothing above 4 kHz
         f"deesser=i=0.4:m=0.5:f=0.5,afftdn=nf=-30,acompressor=threshold=-22dB:ratio=2.5:attack=10:release=150,"
         f"loudnorm=I=-15:TP=-1.5:LRA=8,aresample=48000,asplit=2[vo][vk];"
-        # music ducks under the voice: base level ~0.11, ~0.06 under speech
-        f"[2:a]volume=0.075[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];"
+        # owner, 5 Nov (A5): "you didn't add background music" - at 0.075 with threshold 0.03 / ratio 4 the bed sat ~38 dB under
+        # the voice (-53 LUFS), i.e. inaudible. Measured target: ~15 dB under the voice while he talks (~-30 LUFS), ~-25 in gaps
+        f"[2:a]volume=0.45[m];[m][vk]sidechaincompress=threshold=0.1:ratio=2:attack=30:release=600[md];"
         f"[3:a]volume=0.42[sx];"
-        f"[vo][md][sx]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89[a];"
+        f"[vo][md][sx]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89:level=0[a];"
         f"[4:v]scale=110:110[lg];"
         f"[0:v]setpts=N/{FPS}/TB,{handheld(face_rng)}{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
         f"[sv][lg]overlay=x={W}-60*{W}/1920-{int(110 * W / 1920)}:y=50*{H}/1080:enable='between(t,3,{total - (edl.get('tail', 4.0) if edl.get('end') else 0):.2f})':format=auto,format=yuv420p[v]"
