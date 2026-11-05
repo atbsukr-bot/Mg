@@ -43,15 +43,19 @@ def pieces():
 
 def frames(a, b, w, h):
     """yield frames a..b-1 (timeline frame numbers) as BGR arrays of w x h"""
+    last = None
     for p, f0, n in pieces():
         if f0 + n <= a or f0 >= b:
             continue
         skip = max(0, a - f0); take = min(f0 + n, b) - (f0 + skip)
-        ss = skip / FPS
-        cmd = ['ffmpeg', '-v', 'error', '-noautorotate', '-ss', f'{max(0, ss - 2):.3f}', '-i', p, '-ss', f'{min(ss, 2):.3f}',
+        # count frames instead of seeking: some pieces' timestamps do not start at 0, so -ss can land past the end
+        cmd = ['ffmpeg', '-v', 'error', '-noautorotate', '-i', p,
                '-vf', f'scale={w}:{h}:flags=bicubic', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-']
-        pr = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        last = None; got = 0
+        pr = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        for _ in range(skip):
+            if len(pr.stdout.read(w * h * 3)) < w * h * 3:
+                break
+        got = 0
         while got < take:
             buf = pr.stdout.read(w * h * 3)
             if len(buf) < w * h * 3:
