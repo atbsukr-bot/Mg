@@ -207,7 +207,7 @@ def broll(br, dur):
     n = round(dur * FPS)
     key = h('b2', br, n)
     out = os.path.join(WORK, f"{'c' if br.get('cover') else 'b'}_{key}.mp4")
-    if os.path.exists(out):
+    if os.path.exists(out) and normalised(out, n):
         return out
     zexpr = f"{z0}+({z1 - z0})*n/{max(n - 1, 1)}"
     vf = (f"fps={FPS},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
@@ -229,10 +229,18 @@ def broll(br, dur):
     return out
 
 
+def normalised(path, n):
+    r = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=time_base', '-of', 'csv=p=0', path],
+                       capture_output=True, text=True).stdout.strip().split(',')[0]
+    return r == '1/15360' and frames_ok(path, n)
+
+
 def insert(ins, dur):
     props = dict(ins.get('props', {}), dur=round(dur * FPS))
     key = h('i3', ins['id'], props)
     out = os.path.join(WORK, f'i_{key}.mp4')
+    if os.path.exists(out) and not normalised(out, props['dur']):
+        os.remove(out)          # a render stopped between Remotion and normalisation leaves a raw file: it broke the concat once
     if not os.path.exists(out):
         run(['npx', 'remotion', 'render', 'src/index.ts', ins['id'], out, '--props', json.dumps(props, ensure_ascii=False),
              '--codec=h264', '--crf=14', '--log=error'], cwd=ROOT)
