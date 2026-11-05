@@ -18,8 +18,8 @@ class Stop(Exception):
 def collect():
     real_piece, real_run = B.piece, B.run
 
-    def rec(*a):
-        calls.append(a)
+    def rec(*a, **kw):
+        calls.append((a, kw))
         return os.path.join(B.WORK, f'_dummy_{len(calls)}.mp4')
 
     def stop(cmd, **kw):
@@ -39,9 +39,10 @@ def safe_run(cmd, **kw):
     os.replace(tmp, out)
 
 
-def work(a):
+def work(c):
     B.run = safe_run
-    B.piece(*a)
+    a, kw = c
+    B.piece(*a, **kw)
 
 
 if __name__ == '__main__':
