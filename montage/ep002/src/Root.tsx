@@ -1,6 +1,7 @@
 import React from 'react';
 import {Composition} from 'remotion';
 import {PaperScene} from './Paper';
+import {SubscribeOverlay} from './Subscribe';
 import {Chapter, Clock, CallRecord, Phone, MapRoute, Scene, Year, Quote, EndCard, BigTitle, Black} from './Inserts';
 
 // every insert takes {dur} (frames) so build.py can size it to the narration it covers
@@ -17,7 +18,8 @@ const items: [string, React.FC<any>, any][] = [
   ['EndCard', EndCard, {}],
   ['BigTitle', BigTitle, {title: 'بلاغ بلا عنوان'}],
   ['Black', Black, {}],
-  ['PaperScene', PaperScene, {}],   // no default content: build.py props would merge over it
+  ['PaperScene', PaperScene, {}],
+  ['SubscribeOverlay', SubscribeOverlay, {}],   // no default content: build.py props would merge over it
 ];
 export const RemotionRoot: React.FC = () => (
   <>

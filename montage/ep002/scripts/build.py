@@ -159,11 +159,11 @@ def frames_ok(path, n):
     return r.isdigit() and int(r) == n
 
 
-def piece(cam, a, b, zoom, look, crop_c):
+def piece(cam, a, b, zoom, look, crop_c, hold=False):
     """render one camera piece (video only) to an intermediate clip"""
     src, t0 = cam_input(cam, a)
     # cache key in camera-local time, so re-syncing the master clock reuses rendered pieces
-    key = h('p6', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam))
+    key = h('p6', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam), *(['hold'] if hold else []))
     out = os.path.join(WORK, f'p_{key}.mp4')
     if os.path.exists(out) and frames_ok(out, round((b - a) * FPS)):
         piece_cam[out] = cam
@@ -177,6 +177,8 @@ def piece(cam, a, b, zoom, look, crop_c):
     if cam == 'c2':
         vf.append('null')  # cam2 is read with -noautorotate (sensor is landscape; the rotate flag is wrong)
     vf.append(f'fps={FPS}')
+    if hold:   # one frame, held (a pause where the source has him already talking)
+        vf.append(f'trim=end_frame=1,tpad=stop_mode=clone:stop={max(0, round((b - a) * FPS) - 1)}')
     vf.append(f'scale={W}:{H}:flags=lanczos')
     if zoom > 1.001:
         cw, ch = int(W / zoom) // 2 * 2, int(H / zoom) // 2 * 2
@@ -233,6 +235,17 @@ def normalised(path, n):
     r = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=time_base', '-of', 'csv=p=0', path],
                        capture_output=True, text=True).stdout.strip().split(',')[0]
     return r == '1/15360' and frames_ok(path, n)
+
+
+def clip_piece(path, dur):
+    """a finished clip (the channel intro: logo + music) shown full-frame; its sound is mixed in by the sfx pass"""
+    n = round(dur * FPS)
+    out = os.path.join(WORK, f"i_clip_{h('c1', path, n)}.mp4")
+    if os.path.exists(out) and normalised(out, n):
+        return out
+    run(['ffmpeg', '-v', 'error', '-y', '-i', os.path.join(ROOT, path), '-vf', f'fps={FPS},scale={W}:{H}:flags=lanczos,format=yuv420p,tpad=stop_mode=clone:stop=60',
+         '-frames:v', str(n), '-an', '-c:v', 'libx264', '-preset', 'faster', '-crf', '15', '-video_track_timescale', '15360', out])
+    return out
 
 
 def insert(ins, dur):
@@ -303,7 +316,7 @@ def build(edl_path, out_path, preview=False, assets_only=False):
     t = 0.0; tl = []
     alt = 0
     for u in units:
-        segs = [(u['a'], u['b'])] if (u.get('keep_pauses') or u.get('ins') and not u.get('text')) else tighten(u['a'], u['b'])
+        segs = [(u['a'], u['b'])] if (u.get('keep_pauses') or (u.get('ins') or u.get('clip')) and not u.get('text')) else tighten(u['a'], u['b'])
         segs = [(sa, sa + max(1, round((sb - sa) * FPS)) / FPS) for sa, sb in segs]
         d = sum(sb - sa for sa, sb in segs)
         u = dict(u, segs=segs, gap=round(min(u.get('gap', 0), u.get('max_gap', 0.25)) * FPS) / FPS)
@@ -356,8 +369,7 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         for k, (sa, sb) in enumerate(u['segs']):
             d = sb - sa; s0, s1 = max(o0, oc), min(o1, oc + d)
             last = k == len(u['segs']) - 1
-            if last and o1 > oc + d:          # the unit's trailing gap holds on the last run
-                s1 = o1
+            gap_out = (o1 - (oc + d)) if (last and o1 > oc + d) else 0.0   # the unit's trailing dramatic gap
             if s1 > s0 + 1e-6:
                 src_a = sa + (s0 - oc)
                 # owner's rule: the shot is always the camera he is looking into, switching mid-sentence if his eyes do
@@ -374,11 +386,22 @@ def build(edl_path, out_path, preview=False, assets_only=False):
                         z = base if base is not None else (1.0, 1.16, 1.0, 1.3)[zstate[0] % 4]
                         zstate[0] += 1
                         pieces.append((piece(cam, pa, pb, z, u.get('look'), tuple(u.get('c', cfg['face'][cam]))), pb - pa))
+                        held = (cam, pb, z)
+            if gap_out > 1e-6 and s1 >= oc + d - 1e-6:
+                cam_h, pb, z = held
+                i0 = max(0, int((pb - voff) * 100)); i1 = int((pb + gap_out - voff) * 100)
+                talking = (env[i0:i1] > thr).mean() > 0.1 if i1 > i0 else False
+                # owner, 5 Nov: "the words don't follow my mouth" - in a pause the source often has him already saying the
+                # next (cut) line, so his lips moved with no sound. Live footage only if he is silent there; else hold a frame
+                pieces.append((piece(cam_h, pb, pb + gap_out, z, u.get('look'), tuple(u.get('c', cfg['face'][cam_h])), hold=talking), gap_out))
             oc += d
 
     for u in tl:
         full = u['d'] + u['gap']
         over = u.get('broll') or u.get('ins')
+        if u.get('clip'):
+            pieces.append((clip_piece(u['clip'], full), full))
+            continue
         if over:
             lead = round(over.get('lead', 0.0) * FPS) / FPS
             if lead > 0:
@@ -458,6 +481,12 @@ def build(edl_path, out_path, preview=False, assets_only=False):
             loop[:m] *= np.linspace(0, 1, m); loop[-m:] *= np.linspace(1, 0, m)
             i = int(start * msr); bed[i:i + n] += loop
         cue, start = (nxt or cue), tc
+    if edl.get('end'):
+        # owner, 5 Nov: "at the end the sound disappears" - after the last line only the ducked bed (0.075) was left under the
+        # end card. Bring the score up there (x3.5 = ~0.26) and let it fade out over the last 1.5 s
+        t0 = int((total - edl.get('tail', 4.0)) * msr); r = int(0.8 * msr)
+        g = np.ones(len(bed)); g[t0:t0 + r] = np.linspace(1, 5.0, r); g[t0 + r:] = 5.0
+        bed *= g
     sfx = np.zeros_like(bed)
     wsx, _ = wav_read(os.path.join(ROOT, 'public', 'sfx', 'whoosh.wav'))
     for tw in whips:
@@ -465,6 +494,11 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         if i >= 0:
             sfx[i:j] += wsx[:j - i] * 0.12
     for u in tl:
+        if u.get('clip'):   # the intro's own music / logo sting
+            raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', os.path.join(ROOT, u['clip']), '-vn', '-ac', '1', '-ar', str(msr), '-f', 's16le', '-'],
+                                 capture_output=True).stdout
+            s_ = np.frombuffer(raw, np.int16).astype(np.float32) / 32768 / 0.42   # undo the sfx bus trim: the intro plays at its own level
+            i = int(u['t'] * msr); j = min(len(sfx), i + len(s_)); sfx[i:j] += s_[:j - i]
         for name, off, vol in u.get('sfx', []):
             s, _ = wav_read(os.path.join(ROOT, 'public', 'sfx', f'{name}.wav'))
             i = int(out_time(u, u['a'] + off) * msr); j = min(len(sfx), i + len(s)); sfx[i:j] += s[:j - i] * vol
@@ -497,8 +531,19 @@ def build(edl_path, out_path, preview=False, assets_only=False):
     enc = ['-c:v', 'libx264', '-preset', 'medium' if not preview else 'veryfast', '-crf', '18' if not preview else '24',
            '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '256k', '-movflags', '+faststart']
     # -noautorotate: cam2 pieces carry the phone's (wrong) rotate flag; never let it turn the whole video portrait
+    # owner's subscribe / bell / like / share animation over the face shot (below the face), wherever a unit asks for it
+    subs = [u['t'] + 0.3 for u in tl if u.get('subscribe')]
+    sub_in = []
+    if subs:
+        sub_mov = os.path.join(WORK, 'sub_overlay.mov')
+        if not os.path.exists(sub_mov):
+            run(['npx', 'remotion', 'render', 'src/index.ts', 'SubscribeOverlay', sub_mov, '--props', '{"dur":120}', '--codec=prores',
+                 '--prores-profile=4444', '--image-format=png', '--pixel-format=yuva444p10le', '--log=error'], cwd=ROOT)
+        for k, ts_ in enumerate(subs):
+            sub_in += ['-itsoffset', f'{ts_:.3f}', '-i', sub_mov]
+            fc = fc.replace('format=yuv420p[v]', f'format=yuva420p[v{k}];[v{k}][{5 + k}:v]overlay=eof_action=pass:format=auto,format=yuv420p[v]')
     run(['ffmpeg', '-v', 'error', '-y', '-noautorotate', '-f', 'concat', '-safe', '0', '-i', lst, '-i', vpath, '-i', os.path.join(WORK, 'bed.wav'), '-i', os.path.join(WORK, 'sfx.wav'),
-         '-loop', '1', '-i', logo, '-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-t', f'{total:.3f}', *enc, out_path])
+         '-loop', '1', '-i', logo, *sub_in, '-filter_complex', fc, '-map', '[v]', '-map', '[a]', '-t', f'{total:.3f}', *enc, out_path])
     print('built', out_path, f'{total / 60:.1f} min', len(tl), 'units')
 
 
@@ -583,9 +628,9 @@ WrapStyle: 2
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,Cairo Cap,100,&H00D6E2E8,&H0041A4D9,&H00101210,&H96101210,0,0,0,0,100,100,0,0,3,22,0,2,240,240,80,1
-Style: Banner,Cairo Cap,74,&H00D6E2E8,&H0041A4D9,&H001E1E7A,&HC0101210,0,0,0,0,100,100,0,0,3,26,0,8,240,240,70,1
-Style: Key,Cairo Cap,104,&H00D6E2E8,&H00D6E2E8,&H001E1E7A,&H961E1E7A,0,0,0,0,100,100,0,0,3,24,0,2,240,240,80,1
+Style: Cap,Cairo Cap,100,&H00FFFFFF,&H00FFFFFF,&H00141414,&H80000000,0,0,0,0,100,100,0,0,1,7,3,2,240,240,80,1
+Style: Banner,Cairo Cap,74,&H00141414,&H00141414,&H003FD2FF,&H803FD2FF,0,0,0,0,100,100,0,0,3,26,0,8,240,240,70,1
+Style: Key,Cairo Cap,104,&H00FFFFFF,&H00FFFFFF,&H002A26E3,&H962A26E3,0,0,0,0,100,100,0,0,3,24,0,2,240,240,80,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
