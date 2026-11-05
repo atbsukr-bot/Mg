@@ -293,7 +293,7 @@ COVER = [
 # ---------- owner's review of preview A (4 Nov): ----------
 # no part/chapter cards; nothing repeated (each B-roll clip and each graphic design at most once); no irrelevant people
 # (door_walk = shirtless man, walk_room = maid); apology banner where cam1 stopped; no look-away covers (cam2 continues)
-BANNED = {'door_walk.mp4', 'walk_room.mp4'}
+BANNED = {'door_walk.mp4', 'walk_room.mp4', 'flashlight_night.mp4'}   # flashlight_night = a woman unrelated to the story
 DROP_INS = {'p2_h10', 'p2_e10', 'p2_e1', 'p2_t7'}      # repeats of the Scene / Phone / Clock graphics
 APOLOGY = 'الكاميرا الأساسية طفت… أعتذر منكم، وبنكمل القصة من الكاميرا الثانوية'
 

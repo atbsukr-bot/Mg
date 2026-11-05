@@ -482,7 +482,7 @@ def build(edl_path, out_path, preview=False, assets_only=False):
         f"[3:a]volume=0.42[sx];"
         f"[vo][md][sx]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89[a];"
         f"[4:v]scale=110:110[lg];"
-        f"[0:v]fps={FPS},setpts=N/{FPS}/TB,{handheld(face_rng)}{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
+        f"[0:v]setpts=N/{FPS}/TB,{handheld(face_rng)}{whip_filter(whips)}ass='{ass}':fontsdir='{os.path.join(ROOT, 'public', 'fonts')}':shaping=complex[sv];"
         f"[sv][lg]overlay=x={W}-60*{W}/1920-{int(110 * W / 1920)}:y=50*{H}/1080:enable='between(t,3,{total - (edl.get('tail', 4.0) if edl.get('end') else 0):.2f})':format=auto,format=yuv420p[v]"
     )
     fc = fc.replace('scale=110:110', f'scale={int(110 * W / 1920)}:{int(110 * W / 1920)},format=rgba,colorchannelmixer=aa=0.85')
