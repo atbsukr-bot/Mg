@@ -115,10 +115,13 @@ LOOK = {
 }
 
 
+VSHIFT = cfg.get('vshift', {})   # per-camera picture offset vs the voice (lip sync), seconds
+
+
 def cam_input(cam, t_master):
     if cam == 'c1':
-        return os.path.join(SRC, cfg['cam1_file']), t_master - SYNC['cam1']
-    return os.path.join(SRC, cfg['cam2_file']), t_master
+        return os.path.join(SRC, cfg['cam1_file']), t_master - SYNC['cam1'] + VSHIFT.get('c1', 0.0)
+    return os.path.join(SRC, cfg['cam2_file']), t_master + VSHIFT.get('c2', 0.0)
 
 
 piece_cam = {}
@@ -149,13 +152,20 @@ def face_center(src, t, cam):
     return ((x + fw / 2) / w, min(0.62, (y + fh * 0.75) / hh))
 
 
+def frames_ok(path, n):
+    """a cached piece is only reused if it is complete (a killed render once left a 22-frame piece that should have had 97)"""
+    r = subprocess.run(['ffprobe', '-v', 'error', '-count_packets', '-select_streams', 'v:0', '-show_entries', 'stream=nb_read_packets',
+                        '-of', 'csv=p=0', path], capture_output=True, text=True).stdout.strip().split(',')[0]
+    return r.isdigit() and int(r) == n
+
+
 def piece(cam, a, b, zoom, look, crop_c):
     """render one camera piece (video only) to an intermediate clip"""
     src, t0 = cam_input(cam, a)
     # cache key in camera-local time, so re-syncing the master clock reuses rendered pieces
     key = h('p6', cam, round(t0, 3), round(b - a, 3), zoom, look, crop_c, GRADE.get(cam))
     out = os.path.join(WORK, f'p_{key}.mp4')
-    if os.path.exists(out):
+    if os.path.exists(out) and frames_ok(out, round((b - a) * FPS)):
         piece_cam[out] = cam
         return out
     cx, cy = crop_c
@@ -463,8 +473,9 @@ def build(edl_path, out_path, preview=False, assets_only=False):
     logo = os.path.join(ROOT, 'public', 'logo.png')
     fc = (
         # voice: clean-up chain (manual EQ/compression, no AI enhancement)
-        f"[1:a]aresample=48000,highpass=f=90,equalizer=f=300:t=q:w=1:g=-3,equalizer=f=3000:t=q:w=0.8:g=7,equalizer=f=5500:t=q:w=1:g=5,"
-        f"highshelf=f=8000:g=4,afftdn=nf=-32,acompressor=threshold=-22dB:ratio=3:attack=8:release=120,"
+        f"[1:a]aresample=48000,highpass=f=85,equalizer=f=280:t=q:w=1:g=-2,equalizer=f=2600:t=q:w=1.3:g=3.5,"
+        # owner, 5 Nov: the +7/+5/+4 dB presence boost sounded sharp -> gentle +3.5 dB clarity, de-esser, nothing above 4 kHz
+        f"deesser=i=0.4:m=0.5:f=0.5,afftdn=nf=-30,acompressor=threshold=-22dB:ratio=2.5:attack=10:release=150,"
         f"loudnorm=I=-15:TP=-1.5:LRA=8,aresample=48000,asplit=2[vo][vk];"
         # music ducks under the voice: base level ~0.11, ~0.06 under speech
         f"[2:a]volume=0.075[m];[m][vk]sidechaincompress=threshold=0.03:ratio=4:attack=30:release=600[md];"

@@ -333,6 +333,18 @@ PAPER = {
 }
 
 
+# owner (5 Nov): the paper scenes have room for three photos -> three illustrative photos each, none repeated anywhere
+PHOTOS = {
+    's5': ['st1', 'pc3', 'st2'], 'f3b': ['pc4', 'pc2', 'cr4'], 'p2_o2': ['bz2', 'vl3', 'vl1'], 'p2_o4': ['sr1', 'sr2', 'sr4'],
+    'p2_w9': ['cr1', 'cr3', 'fr3'], 'p2_w17': ['mg3', 'cs2', 'vl2'], 'p2_h11': ['cs1', 'cs3', 'fp2'], 'p2_e9': ['ph3', 'wt1', 'fr2'],
+    'p2_r22': ['fp4', 'fp3', 'sr3'], 'p2_b9': ['gs1', 'gs2', 'gs4'], 'p2_b10': ['bz4', 'tc4', 'bz1'], 'p2_m9': ['wt2', 'gs3', 'mg1'],
+    'p2_m15': ['cf1', 'cf2', 'fr4'], 'p2_t2': ['un1', 'un2', 'un3'], 'p2_t11': ['ck1', 'ph2', 'fr1'], 'p2_n3': ['tc2', 'mn2', 'st3'],
+    'p2_z7': ['ph1', 'cf3', 'cr2'],
+}
+_all = [x for v in PHOTOS.values() for x in v]
+assert len(_all) == len(set(_all)), 'a photo is used twice'
+
+
 def review(units):
     used, out = set(), []
     for u in units:
@@ -344,7 +356,7 @@ def review(units):
         if u['id'] in PAPER:
             lead, props = PAPER[u['id']]
             u.pop('broll', None); u.pop('cap_on_insert', None)
-            u['ins'] = dict(id='PaperScene', props=props, lead=lead)
+            u['ins'] = dict(id='PaperScene', props=dict(props, photos=PHOTOS.get(u['id'], [])), lead=lead)
         br = u.get('broll')
         if br and (br['src'] in BANNED or br['src'] in used):
             u.pop('broll')

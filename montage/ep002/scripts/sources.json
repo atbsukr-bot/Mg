@@ -22,5 +22,9 @@
   "c1": "curves=master='0/0 0.25/0.33 0.5/0.58 0.8/0.86 1/1',eq=saturation=1.06,colorbalance=rh=0.02",
   "c2": "hqdn3d=2:2:4:4,curves=master='0/0 0.25/0.27 0.5/0.53 0.8/0.84 1/1',eq=contrast=1.05:saturation=0.95,colorbalance=rs=-0.04:bs=0.05:rm=-0.03:bm=0.03"
  },
- "c2_available": true
+ "c2_available": true,
+ "vshift": {
+  "c2": -0.1
+ },
+ "vshift_note": "measured 5 Nov (mouth openness vs voice, 60 s windows): cam2 voice trails its picture by 3-4 frames all session; cam1 0-2 frames"
 }

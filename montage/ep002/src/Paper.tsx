@@ -164,14 +164,21 @@ export const DateStamp: React.FC<{dur: number; x: number; y: number; text: strin
 // ---------- ep002: one full-screen archive scene per story beat (every scene has its own content: nothing repeats) ----------
 type Item = {text: string; tone?: string; at: number};          // at = seconds from the scene start
 export const PaperScene: React.FC<{dur: number; date?: string; place?: string; person?: {name: string; note?: string; fileNo?: string};
-  items?: Item[]; title?: string}> = ({dur, date, place, person, items = [], title}) => {
+  items?: Item[]; title?: string; photos?: string[]}> = ({dur, date, place, person, items = [], title, photos = []}) => {
   const W = 2560, fps = 30;
   const listX = person ? 1720 : W / 2;
   const size = 82, gap = 152;
-  const y0 = person ? 470 : 640 - ((items.length - 1) * gap) / 2 + (title ? 70 : 0);
+  // with photos the list sits higher, so the bottom row of three taped photos never covers it
+  const y0 = person ? 470 : photos.length ? (title ? 400 : 270) : 640 - ((items.length - 1) * gap) / 2 + (title ? 70 : 0);
+  const slots = [[520, 1135, -3], [1280, 1150, 2], [2040, 1130, -2]];
   return (
     <AbsoluteFill style={{background: '#000'}}>
-      <PaperBg dur={dur} />
+      <PaperBg dur={dur} sheets={photos.length === 0} />
+      {photos.slice(0, 3).map((ph, i) => (
+        <Sequence key={ph} from={18 + i * 12} layout="none">
+          <TapedPhoto dur={dur - 18 - i * 12} x={slots[i][0]} y={slots[i][1]} img={`photos/${ph}.jpg`} w={460} h={300} tilt={slots[i][2]} bw />
+        </Sequence>
+      ))}
       {date && <Sequence from={4} layout="none"><DateStamp dur={dur - 4} x={430} y={190} text={date} size={70} /></Sequence>}
       {place && <Sequence from={12} layout="none"><PaperTag dur={dur - 12} text={place} x={2080} y={200} tone="yellow" tape size={60} tilt={1.5} /></Sequence>}
       {title && <Sequence from={8} layout="none"><PaperTag dur={dur - 8} text={title} x={W / 2} y={y0 - 190} tone="paper" size={100} bullet={false} /></Sequence>}
