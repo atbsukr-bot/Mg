@@ -7,6 +7,8 @@ name='facebook/mask2former-swin-tiny-coco-panoptic'
 proc=AutoImageProcessor.from_pretrained(name); m=Mask2FormerForUniversalSegmentation.from_pretrained(name).eval()
 os.makedirs('m2',exist_ok=True); prev=None
 for i,fp in enumerate(sorted(glob.glob('f/*.jpg'))):
+    if os.path.exists(f'm2/{i:05d}.png'):
+        prev=cv2.imread(f'm2/{i:05d}.png',0).astype(np.float32)/255; continue
     f=cv2.imread(fp); small=cv2.resize(f,(960,540))
     inp=proc(images=cv2.cvtColor(small,cv2.COLOR_BGR2RGB),return_tensors='pt')
     with torch.no_grad(): out=m(**inp)
