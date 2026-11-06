@@ -1,11 +1,14 @@
 # Composite: neon room behind the person + Majed-style montage (handheld camera, zoom steps, punches,
-# flash/glitch, captions in the owner's dialect, channel logo). Writes out/neon30b_v.mp4 (no audio).
+# flash/glitch, captions in the owner's dialect, channel logo). Writes out/neon30d_v.mp4 (no audio).
 import numpy as np, cv2, re, subprocess, math
 from PIL import Image, ImageDraw, ImageFont
 FPS=30; T0=90.55; N=862; END=38            # 862 a-roll frames + 38-frame end card = 30.0 s
 P='/home/user/Mg/montage/ep002/'
 BG=cv2.imread('work/room_bg.png').astype(np.float32)/255
 H0,W0=BG.shape[:2]
+PLATE=cv2.GaussianBlur(cv2.imread('work/plate.png').astype(np.float32)/255,(0,0),1.5); KNOWN=cv2.imread('work/plate_known.png',0)>0
+_y,_x=np.mgrid[0:1080,0:1920].astype(np.float32)
+VIG=(np.clip(1-0.55*((_y-700)/380).clip(0,1)**1.4,0,1)*np.clip(1-0.35*(((_x-960)/960)**2+((_y-480)/700)**2),0.55,1))[...,None]  # one lens vignette over both layers, darker floor
 LOGO=Image.open(P+'public/logo.png').convert('RGBA').resize((118,118))
 FONT=ImageFont.truetype(P+'public/fonts/CairoCap-ExtraBold.ttf',66)
 FONT_END=ImageFont.truetype(P+'public/fonts/Tajawal-Black.ttf',92)
@@ -35,7 +38,32 @@ GRADE=np.array([1.10,0.96,0.90],np.float32)   # BGR: cool the subject toward the
 def composite(i,t):
     f=cv2.imread(f'work/f/{i:05d}.jpg').astype(np.float32)/255
     a=cv2.imread(f'work/m2/{i:05d}.png',0).astype(np.float32)/255
-    a=cv2.GaussianBlur(np.clip((a-0.18)/0.64,0,1),(0,0),1.6)[...,None]
+    a=np.clip((a-0.18)/0.64,0,1)
+    # fill holes in the matte (the lips during the phone gesture showed the wall through): close small gaps,
+    # fill every enclosed region smaller than 6000 px, then lift the matte to that solid body
+    wall=np.median(f[a<0.05],axis=0)
+    solid=cv2.morphologyEx((a>0.3).astype(np.uint8),cv2.MORPH_CLOSE,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(15,15)))
+    n,lab,st,_=cv2.connectedComponentsWithStats(1-solid,8)
+    for k in range(1,n):
+        x,y,w,h,ar=st[k]
+        if x>0 and y>0 and x+w<1920 and y+h<1080 and ar<6000:
+            reg=lab==k
+            if np.abs(f[reg].mean(0)-wall).max()>0.07: solid[reg]=1      # real gap shows the old wall: leave it open
+    solid=cv2.erode(solid,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(9,9))).astype(np.float32)
+    a=np.maximum(a,solid)
+    # clean-plate difference (fixed camera): near the outline, pixels that still match the empty original room are room
+    near=(cv2.distanceTransform((a>0.5).astype(np.uint8),cv2.DIST_L2,5)<45)&KNOWN
+    d=cv2.GaussianBlur(np.abs(cv2.GaussianBlur(f,(0,0),1.5)-PLATE).max(2),(0,0),2)
+    a=np.where(near,a*np.clip((d-0.035)/0.06,0,1),a)
+    a=cv2.morphologyEx(a,cv2.MORPH_OPEN,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5)))
+    a=cv2.erode(a,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)))       # pull the edge 3 px inside the body
+    a=cv2.GaussianBlur(a,(0,0),2.0)
+    # colour decontamination: edge pixels take the colour of the body just inside them, not the old wall
+    core=(a>0.97).astype(np.float32)
+    est=cv2.GaussianBlur(f*core[...,None],(0,0),7)/(cv2.GaussianBlur(core,(0,0),7)[...,None]+1e-4)
+    edgew=np.clip((0.97-a)/0.5,0,1)[...,None]*(cv2.GaussianBlur(core,(0,0),7)[...,None]>0.02)
+    f=f*(1-edgew)+est*edgew
+    a=a[...,None]
     s,hx,hy=cam(t)
     bx=int((W0-1920)/2-hx*0.4); by=int((H0-1080)/2-hy*0.4)
     bg=BG[by:by+1080,bx:bx+1920].copy()
@@ -49,13 +77,14 @@ def composite(i,t):
     # TV-side rim light (right) + cool fill from the left
     xs=np.linspace(0,1,1920,dtype=np.float32)[None,:,None]
     sa=cv2.GaussianBlur(a,(0,0),3)[...,None]; edge=np.clip(sa-cv2.GaussianBlur(sa,(0,0),10)[...,None],0,1)*a
-    rim=edge*(np.array([1.0,0.35,0.75],np.float32)*xs**1.5+np.array([1.0,0.45,0.15],np.float32)*(1-xs)**2*0.6)
-    fg=np.clip(fg+rim*0.7,0,1)
+    side=np.clip(np.abs(xs-0.47)*4,0,1); rim=edge*side*(np.array([1.0,0.35,0.75],np.float32)*xs**1.5+np.array([1.0,0.45,0.15],np.float32)*(1-xs)**2*0.6)
+    fg=np.clip(fg+rim*0.45,0,1)
     # light wrap: the background bleeds a little over his outline
     wrap=cv2.GaussianBlur(bg,(0,0),14)*np.clip(1-cv2.GaussianBlur(a,(0,0),6)[...,None],0,1)*a
-    fg=np.clip(fg+wrap*0.2,0,1)
+    fg=np.clip(fg+wrap*0.10,0,1)
     out=bg*(1-a)+fg*a
-    return warp(out,s,hx,hy,*FACE)
+    out=warp(out,s,hx,hy,*FACE)
+    return out*VIG
 def fx(img,t):
     for p in FLASH:
         if 0<=t-p<0.25: img=img+(1-img)*0.7*(1-(t-p)/0.25)
@@ -83,7 +112,7 @@ def overlay(img,t,end=False):
         d.text(((1920-w)/2,880),tx,font=FONT_END,fill=(255,210,63),direction='rtl',stroke_width=8,stroke_fill=(122,16,34))
     return np.asarray(im)
 enc=subprocess.Popen(['ffmpeg','-v','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s','1920x1080','-r','30','-i','-',
-    '-c:v','libx264','-crf','18','-preset','medium','-pix_fmt','yuv420p','out/neon30b_v.mp4'],stdin=subprocess.PIPE)
+    '-c:v','libx264','-crf','18','-preset','medium','-pix_fmt','yuv420p','out/neon30d_v.mp4'],stdin=subprocess.PIPE)
 last=None
 for i in range(N):
     t=i/FPS; img=fx(composite(i,t),t); last=img
