@@ -1,5 +1,7 @@
 # أدلة الحلقة 003: «عبّارة السلام 98»
 
+> **قرار المالك (8 نوفمبر 2026):** ولا شي يأثر على الربح، وولا ريال يندفع. **يدخل الفيديو بس الملفات اللي في هالمجلد** (حقوقها مضمونة). صفحات التقرير وصور الانتشال انتقلت إلى `montage/ep003/reference_only/` للمرجع والتحقق فقط، وتنعاد كرسومات وبطاقات من تصميمنا. ولا صور وكالات أنباء، ولا تراخيص مدفوعة.
+
 كل صورة هنا لها مصدر، ومعها طريقة الاستخدام والحقوق. **ممنوع إضافة أي صورة لهالمجلد بدون سطر هنا.**
 
 ## صور من ويكيميديا كومنز (حقوقها واضحة)
@@ -12,11 +14,11 @@
 - https://commons.wikimedia.org/wiki/File:%22Al-Salam_Boccacio_98%22_-_Genoa,_2001.jpg
 - https://commons.wikimedia.org/wiki/File:US_Navy_060204-N-0000N-001_Infrared_imagery_taken_from_a_U.S._Navy_P-3C_Orion_maritime_patrol_aircraft,_assisting_in_search_and_rescue_operations_for_survivors_of_the_Egyptian_ferry_Al_Salam_Boccaccio_98_in_the_Red_Sea.jpg (ونفس الاسم بـ 002 و003 و004)
 
-## من تقرير التحقيق الرسمي (هيئة بنما البحرية، 2006)
-المصدر: `00_panama_report_2006.pdf` (79 صفحة)، منشور على:
+## مرجع فقط، ما يدخل الفيديو: تقرير التحقيق الرسمي (هيئة بنما البحرية، 2006)
+المصدر: `reference_only/00_panama_report_2006.pdf` (79 صفحة)، منشور على:
 https://safety4sea.com/wp-content/uploads/2019/11/Panama-Maritime-Authority-Preliminary-investigation-report-on-the-sinking-of-Al-Salam-Boccaccio-98-2006_08.pdf
 
-| الملف | وش فيه | صفحة الملف | وين تنستخدم |
+| الملف (في reference_only) | وش فيه | صفحة الملف | البديل في الفيديو |
 |---|---|---|---|
 | `08_report_cover.jpg` | غلاف التقرير | 1 | القسم 1 |
 | `09_report_toll_map.jpg` | صفحة الحصيلة (1,031 ضحية، 387 ناجي، 710 مفقود) مظللة | 24 | القسم 11 |
