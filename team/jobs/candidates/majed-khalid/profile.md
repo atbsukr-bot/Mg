@@ -15,5 +15,5 @@
 | الإرسال من | atbsukr@gmail.com |
 
 ## رابط السيرة المستخدم في الإيميلات
-- نسخة قوقل دوكس (منشورة برابط قراءة): https://docs.google.com/document/d/1M002b6RlfQZjEAVqsreyVx5GEWBV1uI0_fPJaaZrmFA/export?format=pdf
-- إذا رُفع ملف السيرة الأصلي على درايف، يُستخدم رابطه بدلها.
+- **من 10 نوفمبر 2026 وطالع:** الملف الأصلي «ماجد_خالد_السيرة_الذاتية.pdf» في درايف (منشور برابط قراءة): https://drive.google.com/file/d/17sngXLwtE_rQwSmJPmdXc7BeMtTQ1DfL/view
+- إيميلات 9 نوفمبر استخدمت نسخة قوقل دوكس، ولا تنحذف عشان روابطها تظل شغالة: https://docs.google.com/document/d/1M002b6RlfQZjEAVqsreyVx5GEWBV1uI0_fPJaaZrmFA/export?format=pdf
