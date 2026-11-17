@@ -655,10 +655,27 @@ def make_meta(theme, vol, r, pages, month, today):
     }
 
 
+SLOT_DAYS = (1, 11, 21)  # one book every ~10 days
+
+
+def book_number(day):
+    """Book 0 = EPOCH; then +1 for every slot day (1st, 11th, 21st) after it, up to `day`."""
+    n, y, m = 0, EPOCH.year, EPOCH.month
+    while (y, m) <= (day.year, day.month):
+        for d in SLOT_DAYS:
+            dd = dt.date(y, m, d)
+            if EPOCH < dd <= day:
+                n += 1
+        m += 1
+        if m == 13:
+            y, m = y + 1, 1
+    return n
+
+
 def build(out_dir, day=None, theme=None):
     register()
     today = day or dt.date.today()
-    idx = (today - EPOCH).days
+    idx = book_number(today)
     theme = theme or ROTATION[idx % len(ROTATION)]
     vol = idx // len(ROTATION) + 1
     r = random.Random(idx * 7919 + 17)
