@@ -20,7 +20,7 @@ PAPER_IN_PER_PAGE = 0.002252  # white paper
 LW = 4.6  # outline width in points
 PUBLISHER = "Tiny Crayon Press"
 EPOCH = dt.date(2026, 11, 17)
-ROTATION = ["animals", "vehicles", "fantasy", "dinos", "abc", "numbers", "seasonal"]
+ROTATION = ["animals", "vehicles", "seasonal", "fantasy", "dinos", "abc", "numbers"]
 
 SEA = {"FISH", "WHALE", "OCTOPUS", "CRAB", "JELLYFISH", "SUBMARINE", "TURTLE"}
 SKY = {"BUTTERFLY", "BEE", "AIRPLANE", "HELICOPTER", "HOT AIR BALLOON", "ROCKET", "PTERODACTYL", "KITE",
