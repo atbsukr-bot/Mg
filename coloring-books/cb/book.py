@@ -649,7 +649,7 @@ def make_meta(theme, vol, r, pages, month, today):
     return {
         "date": today.isoformat(), "theme": theme, "volume": vol, "year": today.year,
         "title": title, "subtitle": subtitle, "display_title": title, "title_lines": title_lines,
-        "series": "Tiny Crayon Toddler Coloring Books", "author": PUBLISHER, "publisher": PUBLISHER,
+        "series": "Tiny Crayon Toddler Coloring Books", "author": COPYRIGHT_HOLDER, "publisher": PUBLISHER,
         "description_html": desc, "keywords": keywords, "categories": categories,
         "reading_age": "2 - 4", "price_usd": 6.99, "n_drawings": n, "cover_subjects": cover_subjects,
         "ribbon": ribbon, "back_head": "BIG PICTURES FOR LITTLE HANDS!", "back_lines": back_lines, "season": season,
@@ -720,7 +720,7 @@ def listing_text(m):
     L = [
         "AMAZON KDP LISTING  (copy each field as-is)", "=" * 48, "",
         f"Language: English", f"Book Title: {m['title']}", f"Subtitle: {m['subtitle']}",
-        f"Series: {m['series']}  |  Volume: {m['volume']}", f"Author (pen name): {m['author']}", f"Copyright holder: {COPYRIGHT_HOLDER}",
+        f"Series: {m['series']}  |  Volume: {m['volume']}", f"Author: {m['author']}", f"Copyright holder: {COPYRIGHT_HOLDER}",
         f"Publisher / Imprint: {m['publisher']}", "", "Description (paste into the HTML box):", m["description_html"], "",
         "Keywords (7 boxes):"] + [f"  {i + 1}. {k}" for i, k in enumerate(m["keywords"])] + [
         "", "Categories (choose up to 3):"] + [f"  - {k}" for k in m["categories"]] + [
