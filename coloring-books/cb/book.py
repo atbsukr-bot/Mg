@@ -511,7 +511,7 @@ def make_cover(path, meta, pages, theme, r, n_pages):
         c.setFillColorRGB(1, 1, 1)
         c.setStrokeColorRGB(.1, .1, .2)
         c.roundRect(tx + 6, ty, tw - 12, th, 14, stroke=1, fill=1)
-        pp = Pen(c, color=False, lw=2.2)
+        pp = Pen(c, color=True, lw=2.2)
         with pp.at(tx + tw / 2, ty + th * .56, min(tw, th) / 118, flip=pg.flip):
             pg.fn(pp, pg.acc) if pg.acc else pg.fn(pp)
         c.setFont("FredokaBold", 12)
