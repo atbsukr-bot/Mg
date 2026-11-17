@@ -19,6 +19,7 @@ BLEED = .125 * IN
 PAPER_IN_PER_PAGE = 0.002252  # white paper
 LW = 4.6  # outline width in points
 PUBLISHER = "Tiny Crayon Press"
+COPYRIGHT_HOLDER = "Maged Khalid"
 EPOCH = dt.date(2026, 11, 17)
 ROTATION = ["animals", "vehicles", "seasonal", "fantasy", "dinos", "abc", "numbers"]
 
@@ -349,9 +350,9 @@ def title_page(c, meta, cover_fn):
 def copyright_page(c, meta):
     c.setFillColorRGB(0, 0, 0)
     c.setFont("FredokaMed", 11)
-    lines = [meta["display_title"], "", f"Copyright © {meta['year']} {PUBLISHER}", "All rights reserved.", "",
+    lines = [meta["display_title"], "", f"Copyright © {meta['year']} {COPYRIGHT_HOLDER}", "All rights reserved.", "",
              "No part of this book may be reproduced or shared in any form",
-             "without written permission from the publisher, except for personal use.", "",
+             "without written permission from the copyright holder, except for personal use.", "",
              "Coloring tip: place a sheet of cardboard behind the page",
              "when using markers. Crayons and colored pencils work best!"]
     y = 230
@@ -719,7 +720,7 @@ def listing_text(m):
     L = [
         "AMAZON KDP LISTING  (copy each field as-is)", "=" * 48, "",
         f"Language: English", f"Book Title: {m['title']}", f"Subtitle: {m['subtitle']}",
-        f"Series: {m['series']}  |  Volume: {m['volume']}", f"Author (pen name): {m['author']}",
+        f"Series: {m['series']}  |  Volume: {m['volume']}", f"Author (pen name): {m['author']}", f"Copyright holder: {COPYRIGHT_HOLDER}",
         f"Publisher / Imprint: {m['publisher']}", "", "Description (paste into the HTML box):", m["description_html"], "",
         "Keywords (7 boxes):"] + [f"  {i + 1}. {k}" for i, k in enumerate(m["keywords"])] + [
         "", "Categories (choose up to 3):"] + [f"  - {k}" for k in m["categories"]] + [
